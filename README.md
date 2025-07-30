@@ -1,6 +1,4 @@
-# project_wmx
-Project WMX: Learning project
+# Project WMX
+Learning project
 
-Authors: 
-Wojciech Zając
-Maciej Zając
+by Wojciech Zając, Maciej Zając
