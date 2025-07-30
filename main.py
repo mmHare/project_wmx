@@ -28,7 +28,7 @@ def square(n: int):
         print("*" + " "*(2*n - 2) + "*")
     print("*"*2*n)
 
-def random_name_generator(plec: str) -> str:
+# def random_name_generator(plec: str) -> str:
     
 
 display_menu()
