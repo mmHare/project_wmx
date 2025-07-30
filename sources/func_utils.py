@@ -1,1 +1,3 @@
 # funkcje pomocnicze
+
+# komentarz test
