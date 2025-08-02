@@ -1,5 +1,6 @@
 import random
 from sources.menu_minigames import menu_minigames
+from sources import mod_users
 
 
 def display_menu(functions_list: list):
@@ -37,6 +38,7 @@ def prime_numbers():
     print(f"Oto lista liczb pierwszych w podanym zakresie:")
     print(liczby_pierwsze)
 
+
 def print_square():
     bok = int(input("Podaj szerokość kwadratu: "))
     print("*"*2*bok)
@@ -44,9 +46,11 @@ def print_square():
         print("*" + " "*(2*bok - 2) + "*")
     print("*"*2*bok)
 
+
 def random_name_generator():
-    plec = input("Czy chcesz wygenerować imię męskie(M) czy żeńskie(F)?: ").upper()
-    
+    plec = input(
+        "Czy chcesz wygenerować imię męskie(M) czy żeńskie(F)?: ").upper()
+
     fem_names = ['Felicia', 'Ayarissa', 'Freya', 'Claire']
     mal_names = ['Rob', 'Bob', 'Cody', 'John']
 
@@ -57,8 +61,13 @@ def random_name_generator():
 
     print(name)
 
+
+user_manager = mod_users.User_manager()
+mod_users.user_management_screen(user_manager)
+
 # Lista, do której wrzucamy funkcje do menu
-list_of_functions = [prime_numbers, print_square, random_name_generator, menu_minigames]
+list_of_functions = [prime_numbers, print_square,
+                     random_name_generator, menu_minigames]
 # Podawane funkcje nie przyjmują argumentów - przyjmują wartości wewnątrz przez input użytkownika
 
 while True:
