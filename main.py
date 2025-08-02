@@ -1,4 +1,6 @@
 import random
+from sources.menu_minigames import menu_minigames
+
 
 def display_menu(functions_list: list):
     print()
@@ -56,7 +58,7 @@ def random_name_generator():
     print(name)
 
 # Lista, do której wrzucamy funkcje do menu
-list_of_functions = [prime_numbers, print_square, random_name_generator]
+list_of_functions = [prime_numbers, print_square, random_name_generator, menu_minigames]
 # Podawane funkcje nie przyjmują argumentów - przyjmują wartości wewnątrz przez input użytkownika
 
 while True:
