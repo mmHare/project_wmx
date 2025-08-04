@@ -1,5 +1,5 @@
-from sources.minigames.bulls_n_cows import play_bulls_n_cows
-from sources.minigames.puzzle_15 import play_15_puzzle
+from src.minigames.bulls_n_cows import play_bulls_n_cows
+from src.minigames.puzzle_15 import play_15_puzzle
 
 
 def add_option(opt_list, name, func):

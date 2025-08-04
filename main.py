@@ -1,6 +1,10 @@
+'''PROJECT WMX'''
+from src import mod_db
+from src import mod_users
+from src.menu_minigames import menu_minigames
 import random
-from sources.menu_minigames import menu_minigames
-from sources import mod_users
+
+PROGRAM_VERSION = "1.0.0.0"
 
 
 def display_menu(functions_list: list):
@@ -62,8 +66,10 @@ def random_name_generator():
     print(name)
 
 
-user_manager = mod_users.User_manager()
-mod_users.user_management_screen(user_manager)
+# Połączenie z bazą danych (wykorzystywane w całym projekcie)
+connectionManager = mod_db.ConnectionManager(mod_db.DbType.POSTGRES)
+user_manager = mod_users.UserManager(connectionManager)
+user_manager.user_settings()  # Ekran zarządzania użytkownikami
 
 # Lista, do której wrzucamy funkcje do menu
 list_of_functions = [prime_numbers, print_square,

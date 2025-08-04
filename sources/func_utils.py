@@ -1,3 +1,0 @@
-# funkcje pomocnicze
-
-# komentarz test
