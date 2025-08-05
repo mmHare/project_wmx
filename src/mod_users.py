@@ -1,19 +1,16 @@
 '''User management module'''
 
 import getpass
-
-from src import mod_db
+from src.mod_db import connection_manager
 from src.func_utils import hash_text, check_hashed
-
-# połączenie z bazą
 
 
 # klasa managera użytkowników
 class UserManager:
     logged_user = {"id": "", "login": "", "name": "", "surname": ""}
 
-    def __init__(self, connectionManager: mod_db.ConnectionManager):  # constructor
-        self.connectionManager = connectionManager
+    def __init__(self):  # constructor
+        pass
 
     @property
     def is_logged(self):
@@ -24,19 +21,19 @@ class UserManager:
         return (self.logged_user["login"] == "SuperAdmin")
 
     def get_login_list(self):  # lista użytkowników
-        cursor = self.connectionManager.db_cursor
+        cursor = connection_manager.db_cursor
         cursor.execute("SELECT login from users where deleted = false;")
         return [row["login"] for row in cursor.fetchall()]
 
     # czy istnieje użytkownik (nieusunięty) o tym loginie
     def check_if_user_exists(self, login):
-        cursor = self.connectionManager.db_cursor
+        cursor = connection_manager.db_cursor
         cursor.execute(
             "SELECT id FROM users WHERE login = %s AND deleted = false;", (login,))
         return bool(cursor.fetchone())
 
     def get_user_by_login(self, login):  # pobranie danych użytkownika po loginie
-        cursor = self.connectionManager.db_cursor
+        cursor = connection_manager.db_cursor
         cursor.execute(
             "SELECT id, name, surname FROM users WHERE login = %s AND deleted = false;", (login,))
         return cursor.fetchone()
@@ -56,7 +53,7 @@ class UserManager:
                 return False
 
         # logowanie z bazy
-        cursor = self.connectionManager.db_cursor
+        cursor = connection_manager.db_cursor
         cursor.execute(
             "SELECT * FROM users WHERE login = %s AND deleted = false;", (login,))
         result = cursor.fetchone()
@@ -77,17 +74,17 @@ class UserManager:
         self.logged_user = {"id": "", "login": "", "name": "", "surname": ""}
 
     def add_user(self, login, name, surname, password):
-        cursor = self.connectionManager.db_cursor
+        cursor = connection_manager.db_cursor
         cursor.execute("INSERT INTO users (name, surname, login, password) VALUES (%s, %s, %s, %s);",
                        (name, surname, login, hash_text(password)))
-        self.connectionManager.connection.commit()
+        connection_manager.connection.commit()
         return cursor.rowcount
 
     def delete_user(self, login):
-        cursor = self.connectionManager.db_cursor
+        cursor = connection_manager.db_cursor
         cursor.execute(
             "UPDATE users SET deleted = true WHERE login = %s;", (login,))
-        self.connectionManager.connection.commit()
+        connection_manager.connection.commit()
         return cursor.rowcount
 
     # ekran ustawień użytkowników
@@ -136,3 +133,6 @@ class UserManager:
 
     def user_settings(self):
         self.user_management_screen()
+
+
+user_manager = UserManager()  # instancja klasy UserManager

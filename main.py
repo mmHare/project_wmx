@@ -1,10 +1,7 @@
 '''PROJECT WMX'''
-from src import mod_db
-from src import mod_users
+from src.mod_users import user_manager
 from src.menu_minigames import menu_minigames
 import random
-
-PROGRAM_VERSION = "1.0.0.0"
 
 
 def display_menu(functions_list: list):
@@ -55,8 +52,8 @@ def random_name_generator():
     plec = input(
         "Czy chcesz wygenerować imię męskie(M) czy żeńskie(F)?: ").upper()
 
-    fem_names = ['Felicia', 'Ayarissa', 'Freya', 'Claire']
-    mal_names = ['Rob', 'Bob', 'Cody', 'John']
+    fem_names = ['Felicia', 'Ayarissa', 'Freya', 'Claire', 'Alice <3']
+    mal_names = ['Rob', 'Bob', 'Cody', 'John', 'Bilbo']
 
     if plec == 'F':
         name = random.choice(fem_names)
@@ -66,9 +63,6 @@ def random_name_generator():
     print(name)
 
 
-# Połączenie z bazą danych (wykorzystywane w całym projekcie)
-connectionManager = mod_db.ConnectionManager(mod_db.DbType.POSTGRES)
-user_manager = mod_users.UserManager(connectionManager)
 user_manager.user_settings()  # Ekran zarządzania użytkownikami
 
 # Lista, do której wrzucamy funkcje do menu

@@ -8,8 +8,8 @@ import sqlite3
 
 class DbType(enum.Enum):
     NONE = "none"
-    POSTGRES = "postgres"
-    SQLITE = "sqlite"
+    POSTGRES = "PostgreSQL"
+    SQLITE = "SQLite"
 
 
 class ConnectionManager:
@@ -58,3 +58,40 @@ class ConnectionManager:
     def close_connection(self):
         if self.connection:
             self.connection.close()
+
+    def settings_screen(self):
+        """Metoda do wyświetlania ekranu ustawień bazy danych."""
+        while True:
+            print("Database settings:")
+            print("1. Change database type")
+            print("2. Change connection parameters (TBI)")
+            print("3. Exit")
+            choice = input("Select an option: ")
+            if choice == "1":
+                self.change_db_type()
+            elif choice == "2":
+                self.change_connection_params()
+            elif choice == "3":
+                break
+            else:
+                print("Invalid choice. Please try again.")
+
+    def change_db_type(self):
+        """Method to change the database type."""
+        print("1. PostgreSQL")
+        print("2. SQLite")
+        choice = input("Select an option: ")
+        if choice == "1":
+            self.db_type = DbType.POSTGRES
+        elif choice == "2":
+            self.db_type = DbType.SQLITE
+        self.connection = self.connect()
+        if not self.connection:
+            print("Failed to connect to the database.")
+
+    def change_connection_params(self):
+        """Method to change connection parameters."""
+        pass
+
+
+connection_manager = ConnectionManager(DbType.POSTGRES)

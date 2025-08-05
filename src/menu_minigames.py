@@ -1,5 +1,4 @@
-from src.minigames.bulls_n_cows import play_bulls_n_cows
-from src.minigames.puzzle_15 import play_15_puzzle
+from src.minigames import bulls_n_cows, fifteen_puzzle
 
 
 def add_option(opt_list, name, func):
@@ -22,8 +21,8 @@ def execute_option(opt_list, option_id_name):
 def menu_minigames():
     # stworzenie listy opcji
     option_list = [dict(option_id="0", option_name="Quit", function=None)]
-    add_option(option_list, "15 Puzzle", play_15_puzzle)
-    add_option(option_list, "Bulls and Cows", play_bulls_n_cows)
+    add_option(option_list, "15 Puzzle", fifteen_puzzle)
+    add_option(option_list, "Bulls and Cows", bulls_n_cows)
 
     while True:
         print("\n"*2)
