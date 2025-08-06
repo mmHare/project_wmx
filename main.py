@@ -1,6 +1,7 @@
 '''PROJECT WMX'''
 from src.mod_users import user_manager
 from src.menu_minigames import menu_minigames
+from src.mod_db import connection_manager, db_settings_screen
 import random
 
 
@@ -62,6 +63,8 @@ def random_name_generator():
 
     print(name)
 
+
+db_settings_screen()
 
 user_manager.user_settings()  # Ekran zarządzania użytkownikami
 
