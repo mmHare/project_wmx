@@ -6,18 +6,31 @@ from psycopg2.extras import RealDictCursor
 import sqlite3
 
 from src.constants import *
-from src.enums_and_dicts import DB_VERSION, DbType
+from src.enums_and_dicts import *
+from src.mod_config import config_manager
 
 
 class ConnectionManager:
     """Class to manage database connections and operations."""
 
-    def __init__(self, db_type: DbType = DbType.POSTGRES):
+    def __init__(self, db_type: DbType = DbType.NONE):
+        # local or central
+        db_kind = config_manager.config[CONF_DATABASE][CONF_DB_KIND]
+        if db_kind != DbKind.NONE.value:
+            db_type = DB_TYPE[DbKind(db_kind)]
         self.db_type = db_type
         self.connection = None
         self.connection = self.connect()
         if not self.connection:
             raise Exception("Failed to connect to the database.")
+
+    @property
+    def is_local(self):
+        return self.db_type == DbType.SQLITE
+
+    @property
+    def is_central(self):
+        return self.db_type == DbType.POSTGRES
 
     @property
     def db_cursor(self):
@@ -29,8 +42,6 @@ class ConnectionManager:
 
     def db_cursor_dict(self):
         """Returns a cursor with dictionary-like access."""
-        if self.connection is None:
-            raise Exception("Database connection is not established.")
         if self.db_type == DbType.POSTGRES:
             return self.connection.cursor(cursor_factory=RealDictCursor)
         else:
@@ -42,24 +53,34 @@ class ConnectionManager:
 
     def connect(self):
         self.close_connection()
+        db_config = config_manager.config["database"]
         try:
             if self.db_type == DbType.POSTGRES:
-                connection = psycopg2.connect(
-                    database="project_db",
-                    user="db_user",
-                    password="user",
-                    host="192.168.0.11",
-                    port=5432
-                )
-                return connection
+                db_config = db_config[CONF_DB_CENTRAL]
+                if all(key in db_config for key in [
+                        CONF_DB_C_NAME, CONF_DB_C_USER, CONF_DB_C_PASS,
+                        CONF_DB_C_HOST, CONF_DB_C_PORT]):
+
+                    connection = psycopg2.connect(
+                        database=db_config[CONF_DB_C_NAME],
+                        user=db_config[CONF_DB_C_USER],
+                        password=db_config[CONF_DB_C_PASS],
+                        host=db_config[CONF_DB_C_HOST],
+                        port=db_config[CONF_DB_C_PORT]
+                    )
+                    return connection
+                else:
+                    print("Database configuration is incomplete. Verify settings.")
+                    return None
             elif self.db_type == DbType.SQLITE:
-                if not os.path.exists(DB_FILE_DIR + "/project_db.sqlite"):
+                db_config = db_config[CONF_DB_LOCAL]
+                if not os.path.exists(db_config[CONF_DB_L_PATH]):
                     if input("Database file not found. Do you want to create it? (y/n): ").lower() != 'y':
                         return None
-                if not os.path.exists(DB_FILE_DIR):
-                    os.makedirs(DB_FILE_DIR, exist_ok=True)
+                    else:
+                        os.makedirs(db_config[CONF_DB_L_PATH], exist_ok=True)
                 connection = sqlite3.connect(
-                    DB_FILE_DIR + "/project_db.sqlite")
+                    db_config[CONF_DB_L_PATH] + "/" + db_config[CONF_DB_L_NAME])
                 return connection
             else:
                 return None
@@ -140,7 +161,7 @@ class ConnectionManager:
 
 
 # Connection manager instance
-connection_manager = ConnectionManager(DbType.POSTGRES)
+connection_manager = ConnectionManager()
 
 
 # UI functions
@@ -189,7 +210,7 @@ def db_settings_screen():
         if choice == "1":
             change_db_type()
         elif choice == "2":
-            connection_manager.change_connection_params()
+            connection_manager.change_connection_params()  # przenieść do menu ustawień
         elif choice == "3":
             if connection_manager.check_db_version():
                 print("Database is up to date.")

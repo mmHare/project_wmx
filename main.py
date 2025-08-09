@@ -1,8 +1,11 @@
 '''PROJECT WMX'''
+
+import random
+
 from src.mod_users import user_manager
 from src.menu_minigames import menu_minigames
 from src.mod_db import connection_manager, db_settings_screen
-import random
+from src.mod_config import config_manager, config_menu
 
 
 def display_menu(functions_list: list):
