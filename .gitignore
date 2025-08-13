@@ -3,3 +3,5 @@
 /.vscode
 *.code-workspace
 db/project_db.sqlite
+config.json
+db/project_db.db

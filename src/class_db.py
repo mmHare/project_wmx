@@ -5,24 +5,17 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import sqlite3
 
-from src.constants import *
-from src.enums_and_dicts import *
-from src.mod_config import config_manager
+from src.globals import *
+from src.help_functions import *
+from src.class_config import config_manager
 
 
 class ConnectionManager:
     """Class to manage database connections and operations."""
 
     def __init__(self, db_type: DbType = DbType.NONE):
-        # local or central
-        db_kind = config_manager.config[CONF_DATABASE][CONF_DB_KIND]
-        if db_kind != DbKind.NONE.value:
-            db_type = DB_TYPE[DbKind(db_kind)]
         self.db_type = db_type
         self.connection = None
-        self.connection = self.connect()
-        if not self.connection:
-            raise Exception("Failed to connect to the database.")
 
     @property
     def is_local(self):
@@ -40,6 +33,7 @@ class ConnectionManager:
         else:
             return self.connection.cursor()
 
+    @property
     def db_cursor_dict(self):
         """Returns a cursor with dictionary-like access."""
         if self.db_type == DbType.POSTGRES:
@@ -53,7 +47,11 @@ class ConnectionManager:
 
     def connect(self):
         self.close_connection()
-        db_config = config_manager.config["database"]
+        # central or local
+        db_kind = config_manager.config[CONF_DATABASE][CONF_DB_KIND]
+        self.db_type = DB_TYPE[DbKind(db_kind)]
+
+        db_config = config_manager.config[CONF_DATABASE]
         try:
             if self.db_type == DbType.POSTGRES:
                 db_config = db_config[CONF_DB_CENTRAL]
@@ -63,8 +61,8 @@ class ConnectionManager:
 
                     connection = psycopg2.connect(
                         database=db_config[CONF_DB_C_NAME],
-                        user=db_config[CONF_DB_C_USER],
-                        password=db_config[CONF_DB_C_PASS],
+                        user=decrypt_data(db_config[CONF_DB_C_USER]),
+                        password=decrypt_data(db_config[CONF_DB_C_PASS]),
                         host=db_config[CONF_DB_C_HOST],
                         port=db_config[CONF_DB_C_PORT]
                     )
@@ -91,6 +89,13 @@ class ConnectionManager:
     def close_connection(self):
         if self.connection:
             self.connection.close()
+
+    def reconnect(self):
+        self.connection = self.connect()
+        if not self.connection:
+            return False
+        else:
+            return True
 
     def update_db(self):
         """Method to update the database schema."""
@@ -155,68 +160,6 @@ class ConnectionManager:
                 return self.update_db()
             return False
 
-    def change_connection_params(self):
-        """Method to change connection parameters."""
-        pass
 
-
-# Connection manager instance
+# Global instance
 connection_manager = ConnectionManager()
-
-
-# UI functions
-def change_db_type():
-    """Method to change the database type."""
-    while True:
-        print("1. Central (PostgreSQL)")
-        print("2. Local (SQLite)")
-        print("0. Cancel")
-        choice = input("Select an option: ").strip().lower()
-
-        if choice in ["0", "cancel"]:
-            return
-        if choice not in ["1", "2", "central", "local"]:
-            print("Invalid choice. Please try again.")
-            continue
-        elif choice in ["1", "central"]:
-            connection_manager.db_type = DbType.POSTGRES
-        elif choice in ["2", "local"]:
-            connection_manager.db_type = DbType.SQLITE
-
-        connection_manager.connection = connection_manager.connect()
-
-        if not connection_manager.connection:
-            print("Failed to connect to the database.")
-        else:
-            if connection_manager.check_db_version():
-                print("Database is up to date.")
-            else:
-                print("Database update failed.")
-        break
-
-
-def db_settings_screen():
-    """Method to display database settings."""
-    while True:
-        print("="*10, "Database settings:", "="*10)
-        print(f"Current database type: {connection_manager.db_type.value}")
-        print()
-        print("1. Change database type")
-        print("2. Change connection parameters (TBI)")
-        print("3. Check database version")
-        print("0. Exit")
-        choice = input("Select an option: ").strip()
-
-        if choice == "1":
-            change_db_type()
-        elif choice == "2":
-            connection_manager.change_connection_params()  # przenieść do menu ustawień
-        elif choice == "3":
-            if connection_manager.check_db_version():
-                print("Database is up to date.")
-            else:
-                print("Database update failed.")
-        elif choice == "0":
-            break
-        else:
-            print("Invalid choice. Please try again.")

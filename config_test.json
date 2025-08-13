@@ -1,0 +1,19 @@
+{
+    "general": {},
+    "database": {
+        "db_kind": "central",
+        "local": {
+            "name": "project_db.db",
+            "path": "./db",
+            "user": "",
+            "password": ""
+        },
+        "central": {
+            "name": "project_db",
+            "host": "192.168.0.11",
+            "port": 5432,
+            "user": "gAAAAABonPGwWYtcQzESlVSc5GLNYbBKIpei8tolu7__Lm6ew7z_IlrXrNJThf3ij6wN0Pk48B6CpU4WdBY7mR8nsP6Rt9OLfg==",
+            "password": "gAAAAABonPHKDVZbi694pv9UJ97EdKdot2tUrVwndqFX_YhDl5kBAv-Bg7Ll19AJWWiVoM7ITmIa9wevg0_w8AX9ZgvoX_5YOA=="
+        }
+    }
+}

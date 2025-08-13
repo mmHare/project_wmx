@@ -1,8 +1,9 @@
 '''User management module'''
 
 import getpass
-from src.mod_db import connection_manager
-from src.func_utils import hash_text, check_hashed
+from src.globals import *
+from src.help_functions import hash_text, check_hashed
+from src.class_db import connection_manager
 
 
 # klasa managera użytkowników
@@ -21,7 +22,7 @@ class UserManager:
         return (self.logged_user["login"] == "SuperAdmin")
 
     def get_login_list(self):  # lista użytkowników
-        cursor = connection_manager.db_cursor
+        cursor = connection_manager.db_cursor_dict
         cursor.execute("SELECT login from users where deleted = false;")
         return [row["login"] for row in cursor.fetchall()]
 
@@ -33,7 +34,7 @@ class UserManager:
         return bool(cursor.fetchone())
 
     def get_user_by_login(self, login):  # pobranie danych użytkownika po loginie
-        cursor = connection_manager.db_cursor
+        cursor = connection_manager.db_cursor_dict
         cursor.execute(
             "SELECT id, name, surname FROM users WHERE login = %s AND deleted = false;", (login,))
         return cursor.fetchone()
@@ -135,4 +136,5 @@ class UserManager:
         self.user_management_screen()
 
 
-user_manager = UserManager()  # instancja klasy UserManager
+# Global instance
+user_manager = UserManager()
