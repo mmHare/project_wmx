@@ -1,8 +1,6 @@
 """List of program menu screens"""
 
 import types
-
-
 from src.config import *
 from src.database import *
 from src.users import *

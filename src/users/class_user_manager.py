@@ -1,5 +1,6 @@
 """User Class and UserManager Class"""
 
+import getpass
 from src.globals import *
 from src.help_functions import *
 from src.database import *
