@@ -16,7 +16,7 @@ def menu_list_users():
     print("Users:")
     usr_list = user_manager.get_login_list()
     for user in usr_list:
-        print("-", user)
+        print("-", user.login)
 
 
 def menu_new_user():

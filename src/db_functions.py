@@ -62,8 +62,12 @@ def db_reconnect():
 
 
 # executing queries
-def query_select(sql_text: str, params: dict = None, fetch_one: bool = False):
-    return connection_manager.query_execute(QueryMode.SELECT, sql_text, params, fetch_one)
+def query_select(sql_text: str, params: dict = None, fetch_one: bool = False, dict_result: bool = False):
+    return connection_manager.query_execute(QueryMode.SELECT, sql_text, params, fetch_one=fetch_one, dict_result=dict_result)
+
+
+def query_select_one(sql_text: str, params: dict = None, dict_result: bool = False):
+    return connection_manager.query_execute(QueryMode.SELECT, sql_text, params, fetch_one=True, dict_result=dict_result)
 
 
 def query_insert(sql_text: str, params: dict = None):

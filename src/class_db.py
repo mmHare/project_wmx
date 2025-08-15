@@ -1,4 +1,4 @@
-'''Database connection module for the project.'''
+"""Database connection module for the project."""
 
 import os
 import psycopg2
@@ -145,8 +145,8 @@ class ConnectionManager:
                 return self.update_db()
             return False
 
-    def query_execute(self, mode: str, sql_text: str, params: dict = None, key_fields: tuple = None, fetch_one: bool = False):
-        return query_helper(self.connection, self.db_type, mode, sql_text, params, key_fields, fetch_one)
+    def query_execute(self, mode: str, sql_text: str, params: dict = None, key_fields: tuple = None, fetch_one: bool = False, dict_result: bool = False):
+        return query_helper(self.connection, self.db_type, mode, sql_text, params, key_fields, fetch_one, dict_result)
 
 
 # Global instance

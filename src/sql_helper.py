@@ -1,6 +1,9 @@
 """Reusable universal SQL query handlers for Postgre and SQLite"""
 
 import re
+from sqlite3 import Connection
+import sqlite3
+from psycopg2.extras import RealDictCursor
 
 from src.globals import *
 
@@ -29,7 +32,7 @@ def prepare_sql_text(sql_text: str, params: dict, db_type: DbType) -> tuple[str,
     return sql_text, tuple(values)
 
 
-def query_helper(connection, db_type, mode: QueryMode, sql_text: str, params: dict = None, key_fields: tuple = None, fetch_one: bool = False):
+def query_helper(connection: Connection, db_type: DbType, mode: QueryMode, sql_text: str, params: dict = None, key_fields: tuple = None, fetch_one: bool = False, dict_result: bool = False):
     """Executes SQL query
 
     Args:
@@ -38,6 +41,7 @@ def query_helper(connection, db_type, mode: QueryMode, sql_text: str, params: di
         params (dict, optional): Dict of {key: value} where key is matched in sql_text
         key_fields (tuple, optional): "upsert" mode required: DB table unique fields for UPSERT match (tuple of strings, can be parameters from params)
         fetch_one (bool, optional): "select" mode optional
+        dict_result (bool, optional): "select" mode optional, returning dictionary type result
     """
 
     if mode not in QueryMode:
@@ -45,7 +49,7 @@ def query_helper(connection, db_type, mode: QueryMode, sql_text: str, params: di
 
     if connection:
         try:
-            cursor = connection.cursor()
+            """preparing text"""
             start_text = sql_text.lstrip().upper()
 
             if (mode == QueryMode.UPSERT) and start_text.startswith(("INSERT INTO")):
@@ -81,6 +85,24 @@ def query_helper(connection, db_type, mode: QueryMode, sql_text: str, params: di
                 raise Exception(
                     "Query statement and mode inconsistent")
 
+            if mode == QueryMode.INSERT:
+                # edit for returning new record id
+                if db_type == DbType.POSTGRES:
+                    sql_text = sql_text.strip().rstrip(";")
+                    sql_text += "RETURNING id;"
+
+            """get cursor"""
+            if dict_result and (mode == QueryMode.SELECT):  # returns dict
+                if db_type == DbType.POSTGRES:
+                    cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+                elif db_type == DbType.SQLITE:
+                    cursor = connection.cursor()
+                    cursor.row_factory = sqlite3.Row
+            else:
+                cursor = connection.cursor()
+
+            """execute"""
             if params is None:
                 cursor.execute(sql_text)
             else:
@@ -93,6 +115,15 @@ def query_helper(connection, db_type, mode: QueryMode, sql_text: str, params: di
                     return cursor.fetchone()
                 else:
                     return cursor.fetchall()
+            if mode == QueryMode.INSERT:
+                if db_type == DbType.POSTGRES:
+                    new_id = cursor.fetchone()[0]
+
+                elif db_type == DbType.SQLITE:
+                    new_id = cursor.lastrowid
+
+                connection.commit()
+                return new_id
             else:
                 connection.commit()
 
