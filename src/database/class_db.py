@@ -1,14 +1,15 @@
 """Database connection module for the project."""
 
 import os
+from pathlib import Path
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import sqlite3
 
 from src.globals import *
 from src.help_functions import *
-from src.class_config import config_manager
-from src.sql_helper import *
+from src.config import config_manager
+from .sql_helper import *
 
 
 class ConnectionManager:
@@ -102,9 +103,14 @@ class ConnectionManager:
         """Method to update the database schema."""
         if self.connection:
             cursor = self.db_cursor
-            file = open(
-                f"src/sql/{self.db_type.value}/schema/create_tables.sql", 'r')
-            sql = " ".join(file.readlines())
+            # file = open(
+            #     f"src/sql/{self.db_type.value}/schema/create_tables.sql", 'r')
+            sql_path = Path(__file__).parent / "sql" / \
+                self.db_type.value / "schema" / "create_tables.sql"
+
+            with open(sql_path, "r", encoding="utf-8") as file:
+                sql = " ".join(file.readlines())
+
             if self.db_type == DbType.POSTGRES:
                 cursor.execute(sql)
             elif self.db_type == DbType.SQLITE:

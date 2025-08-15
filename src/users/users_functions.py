@@ -1,7 +1,7 @@
 """Functions for users management"""
 
 import getpass
-from src.class_user_manager import user_manager
+from .class_user_manager import user_manager
 
 
 def menu_user_log_in_log_out():
@@ -33,6 +33,6 @@ def menu_delete_user():
     user_manager.delete_user(input("Login: "))
 
 
-def register_user():
+def menu_register_user():
     """save current IP address to db"""
     pass

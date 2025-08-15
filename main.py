@@ -4,9 +4,8 @@
 
 from src.globals import *
 from src.menu_screens import *
-from src.class_db import connection_manager
-from src.menu_minigames import menu_minigames
-from src.class_config import config_manager
+from src.database import connection_manager
+from src.config import config_manager
 
 
 # starting data load

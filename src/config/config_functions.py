@@ -4,7 +4,8 @@ from copy import deepcopy
 import getpass
 
 from src.help_functions import *
-from src.class_config import *
+from src.config import *
+from .class_config import *
 
 
 def get_conf_key_name(key: str) -> str:

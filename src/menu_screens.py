@@ -2,9 +2,10 @@
 
 import types
 
-from src.db_functions import *
-from src.config_functions import *
-from src.users_functions import *
+
+from src.config import *
+from src.database import *
+from src.users import *
 from src.help_functions import *
 
 

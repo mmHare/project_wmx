@@ -1,9 +1,8 @@
 """Database management related functions"""
 
 
-import re
-from src.class_db import connection_manager, query_helper
-from src.class_config import config_manager
+from .class_db import connection_manager
+from src.config import config_manager
 from src.globals import *
 
 
