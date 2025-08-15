@@ -8,35 +8,39 @@ from src.globals import *
 
 def change_db_type():
     """Method to change the database type."""
-    while True:
-        print("1. Central (PostgreSQL)")
-        print("2. Local (SQLite)")
-        print("0. Cancel")
-        choice = input("Select an option: ").strip().lower()
 
-        if choice in ["0", "cancel"]:
-            return
-        if choice not in ["1", "2", "central", "local"]:
-            print("Invalid choice. Please try again.")
-            continue
-        elif choice in ["1", "central"]:
-            connection_manager.db_type = DbType.POSTGRES
-        elif choice in ["2", "local"]:
-            connection_manager.db_type = DbType.SQLITE
+    print(connected_db_str())
+    print("Select database type:")
+    print("1. Central (PostgreSQL)")
+    print("2. Local (SQLite)")
+    print("0. Cancel")
+    choice = input("Select an option: ").strip().lower()
 
-        connection_manager.connection = connection_manager.connect()
+    if choice not in ["1", "2", "0"]:
+        print("Invalid choice.")
+        return
 
-        if not connection_manager.connection:
-            print("Failed to connect to the database.")
+    choice = int(choice)
+
+    if choice == 0:
+        return
+    elif choice == 1:
+        connection_manager.connection = connection_manager.connect(
+            DbKind.CENTRAL.value)
+    elif choice == 2:
+        connection_manager.connection = connection_manager.connect(
+            DbKind.LOCAL.value)
+
+    if not connection_manager.connection:
+        print("Failed to connect to the database.")
+    else:
+        if connection_manager.check_db_version():
+            print("Database is up to date.")
+            # db ok so saving to config
+            config_manager.config[CONF_DATABASE][CONF_DB_KIND] = DB_KIND[connection_manager.db_type].value
+            config_manager.save_config()
         else:
-            if connection_manager.check_db_version():
-                print("Database is up to date.")
-                # db ok so saving to config
-                config_manager.config[CONF_DB_KIND] = DB_KIND[connection_manager.db_type]
-                config_manager.save_config()
-            else:
-                print("Database update failed.")
-        break
+            print("Database update failed.")
 
 
 def check_db_version():
@@ -58,6 +62,12 @@ def db_reconnect():
         print("Connection success")
     else:
         print("Connection error")
+
+
+def connected_db_str():
+    if connection_manager.connection:
+        return f"Connected to {DB_KIND[connection_manager.db_type].value} database"
+    return "Not connected to any database"
 
 
 # executing queries

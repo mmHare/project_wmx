@@ -46,6 +46,14 @@ def menu_delete_user():
 
 
 def menu_register_user():
+    if user_manager.is_logged:
+        local_ip = get_local_ip()
+        return f"Register IP ({local_ip})", register_user
+    else:
+        return None, None
+
+
+def register_user():
     local_ip = get_local_ip()
     print(f"Register current IP ({local_ip}) ? (y/n)")
     if input().strip().lower() == "y":

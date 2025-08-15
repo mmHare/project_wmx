@@ -39,11 +39,11 @@ def db_settings_screen():
     options = [
         ("Check database connection", check_db_connection),
         ("Reconnect to database", db_reconnect),
-        # ("Change database type", change_db_type),
-        ("Check database version", check_db_version)
+        ("Check database version", check_db_version),
+        ("Change database type", change_db_type)
     ]
 
-    show_menu("Database settings", options)
+    show_menu("Database settings", options, info_top=connected_db_str)
 
 
 def user_management_screen():
@@ -51,10 +51,10 @@ def user_management_screen():
 
     options = [
         (menu_user_log),
-        ("Register IP", menu_register_user),
+        (menu_register_user),
         ("User list", menu_list_users),
         ("Add new user", menu_new_user),
         ("Delete user", menu_delete_user)
     ]
 
-    show_menu("User settings", options)
+    show_menu("User settings", options, info_top=get_logged_user_info)

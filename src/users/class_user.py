@@ -1,5 +1,4 @@
-"""User class used as program account
-    """
+"""User class used as program account"""
 
 
 class User:

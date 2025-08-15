@@ -29,8 +29,8 @@ config_defaults = {
         CONF_DB_LOCAL: {
             CONF_DB_L_NAME: DB_NAME + ".db",
             CONF_DB_L_PATH: DB_FILE_DIR,
-            CONF_DB_L_USER: "",
-            CONF_DB_L_PASS: ""
+            CONF_DB_L_USER: encrypt_data(""),
+            CONF_DB_L_PASS: encrypt_data("")
         },
         CONF_DB_CENTRAL: {
             CONF_DB_C_NAME: DB_NAME,
@@ -57,7 +57,8 @@ class ConfigManager:
                 self.config = config_defaults
                 self.save_config()
             else:
-                exit("Failed to load configuration. Exiting...")
+                print("Failed to load configuration. Exiting...")
+                sys.exit()
 
     def load_config_from_file(self, file_path):
         """Load configuration from file."""

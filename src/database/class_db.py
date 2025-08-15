@@ -47,10 +47,11 @@ class ConnectionManager:
             raise Exception(
                 "Dictionary cursor is only available for PostgreSQL.")
 
-    def connect(self):
+    def connect(self, db_kind=None):
         self.close_connection()
         # central or local
-        db_kind = config_manager.config[CONF_DATABASE][CONF_DB_KIND]
+        if db_kind is None:
+            db_kind = config_manager.config[CONF_DATABASE][CONF_DB_KIND]
         self.db_type = DB_TYPE[DbKind(db_kind)]
 
         db_config = config_manager.config[CONF_DATABASE]
