@@ -1,17 +1,25 @@
-'''User management module'''
+"""User management module"""
 
-import getpass
+import psycopg2
+import sqlite3
+
 from src.globals import *
 from src.help_functions import hash_text, check_hashed
 from src.class_db import connection_manager
+from src.db_functions import *
 
 
-# klasa managera użytkowników
+user_defaults = {
+    "id": "",
+    "login": "",
+    "name": "",
+    "surname": ""
+}
+
+
 class UserManager:
-    logged_user = {"id": "", "login": "", "name": "", "surname": ""}
-
     def __init__(self):  # constructor
-        pass
+        self.logged_user = user_defaults
 
     @property
     def is_logged(self):
@@ -22,16 +30,26 @@ class UserManager:
         return (self.logged_user["login"] == "SuperAdmin")
 
     def get_login_list(self):  # lista użytkowników
-        cursor = connection_manager.db_cursor_dict
-        cursor.execute("SELECT login from users where deleted = false;")
-        return [row["login"] for row in cursor.fetchall()]
+        try:
+            table = "users"
+            fields = ["login"]
+            where_clause = "deleted = false"
+            select_result = query_select(table, fields, where_clause)
+            return [row[0] for row in select_result]
+        except Exception as e:
+            print(e)
+            return []
 
     # czy istnieje użytkownik (nieusunięty) o tym loginie
     def check_if_user_exists(self, login):
-        cursor = connection_manager.db_cursor
-        cursor.execute(
-            "SELECT id FROM users WHERE login = %s AND deleted = false;", (login,))
-        return bool(cursor.fetchone())
+        if connection_manager.connection:
+            cursor = connection_manager.db_cursor
+            cursor.execute(
+                "SELECT id FROM users WHERE login = %s AND deleted = false;", (login,))
+            return bool(cursor.fetchone())
+        else:
+            print("No connection...")
+            return False
 
     def get_user_by_login(self, login):  # pobranie danych użytkownika po loginie
         cursor = connection_manager.db_cursor_dict
@@ -87,53 +105,6 @@ class UserManager:
             "UPDATE users SET deleted = true WHERE login = %s;", (login,))
         connection_manager.connection.commit()
         return cursor.rowcount
-
-    # ekran ustawień użytkowników
-
-    def user_management_screen(self):
-        while True:
-            print("\n"*3)
-            print("---Użytkownicy---")
-            print("Zalogowany użytkownik: {}".format(
-                self.logged_user["login"]))
-            print("1. Wyloguj" if self.is_logged else "1. Zaloguj")
-            print("2. Lista użytkowników")
-            print("3. Dodaj użytkownika")
-            print("4. Usuń użytkownika")
-            print("0. Wyjście")
-            user_input = input()
-
-            # wyjście
-            if user_input.lower() in ["0", "q", "quit"]:
-                return
-            # logowanie/wylogowanie
-            elif user_input == "1":
-                if self.is_logged:
-                    self.log_out()
-                else:
-                    self.log_in(input("Login: "), getpass.getpass("Hasło: "))
-            # lista userów
-            elif user_input == "2":
-                print("Użytkownicy:")
-                usr_list = self.get_login_list()
-                for item in usr_list:
-                    print(item)
-                input("Naciśnij ENTER")
-            # dodawanie usera
-            elif user_input == "3":
-                print("Nowy użytkownik")
-                login = input("Login: ")
-                name = input("Imię: ")
-                surname = input("Surname: ")
-                password = getpass.getpass("Hasło: ")
-                self.add_user(login, name, surname, password)
-            # usuwanie usera
-            elif user_input == "4":
-                print("Usuwanie użytkownika")
-                self.delete_user(input("Login: "))
-
-    def user_settings(self):
-        self.user_management_screen()
 
 
 # Global instance

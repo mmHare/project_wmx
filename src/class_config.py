@@ -5,6 +5,23 @@ from src.help_functions import *
 from copy import deepcopy
 
 
+# set of config keys that should be shown hidden
+SENSITIVE_CONFIG_KEYS = {
+    CONF_DB_L_USER,
+    CONF_DB_L_PASS,
+    CONF_DB_C_USER,
+    CONF_DB_C_PASS
+}
+
+
+# key paths with encrypted values
+ENCRYPTED_KEY_PATHS = {
+    (CONF_DATABASE, CONF_DB_LOCAL, CONF_DB_L_USER),
+    (CONF_DATABASE, CONF_DB_LOCAL, CONF_DB_L_PASS),
+    (CONF_DATABASE, CONF_DB_CENTRAL, CONF_DB_C_USER),
+    (CONF_DATABASE, CONF_DB_CENTRAL, CONF_DB_C_PASS)
+}
+
 config_defaults = {
     CONF_GENERAL: {},
     CONF_DATABASE: {
@@ -23,23 +40,6 @@ config_defaults = {
             CONF_DB_C_PASS: encrypt_data("")
         }
     }
-}
-
-# set of config keys that should be shown hidden
-SENSITIVE_CONFIG_KEYS = {
-    CONF_DB_L_USER,
-    CONF_DB_L_PASS,
-    CONF_DB_C_USER,
-    CONF_DB_C_PASS
-}
-
-
-# key paths with encrypted values
-ENCRYPTED_KEY_PATHS = {
-    (CONF_DATABASE, CONF_DB_LOCAL, CONF_DB_L_USER),
-    (CONF_DATABASE, CONF_DB_LOCAL, CONF_DB_L_PASS),
-    (CONF_DATABASE, CONF_DB_CENTRAL, CONF_DB_C_USER),
-    (CONF_DATABASE, CONF_DB_CENTRAL, CONF_DB_C_PASS)
 }
 
 
@@ -88,20 +88,6 @@ class ConfigManager:
                 val = config_to_save[section][subsection][key]
                 if isinstance(val, bytes):
                     config_to_save[section][subsection][key] = val.decode()
-
-        # val = config_to_save[CONF_DATABASE][CONF_DB_LOCAL][CONF_DB_L_USER]
-        # if isinstance(val, bytes):
-        #     config_to_save[CONF_DATABASE][CONF_DB_LOCAL][CONF_DB_L_USER] = val.decode()
-        # val = config_to_save[CONF_DATABASE][CONF_DB_LOCAL][CONF_DB_L_PASS]
-        # if isinstance(val, bytes):
-        #     config_to_save[CONF_DATABASE][CONF_DB_LOCAL][CONF_DB_L_PASS] = val.decode()
-        # val = config_to_save[CONF_DATABASE][CONF_DB_CENTRAL][CONF_DB_C_USER]
-        # if isinstance(val, bytes):
-        #     config_to_save[CONF_DATABASE][CONF_DB_CENTRAL][CONF_DB_C_USER] = val.decode(
-        #     )
-        # if isinstance(val, bytes):
-        #     config_to_save[CONF_DATABASE][CONF_DB_CENTRAL][CONF_DB_C_PASS] = val.decode(
-        #     )
 
             with open(self.config_file_path, "w", encoding="UTF-8") as file:
                 json.dump(config_to_save, file, indent=4, ensure_ascii=False)

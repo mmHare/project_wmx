@@ -8,6 +8,7 @@ import sqlite3
 from src.globals import *
 from src.help_functions import *
 from src.class_config import config_manager
+from src.sql_helper import *
 
 
 class ConnectionManager:
@@ -16,6 +17,9 @@ class ConnectionManager:
     def __init__(self, db_type: DbType = DbType.NONE):
         self.db_type = db_type
         self.connection = None
+
+    def __del__(self):
+        self.close_connection()
 
     @property
     def is_local(self):
@@ -41,9 +45,6 @@ class ConnectionManager:
         else:
             raise Exception(
                 "Dictionary cursor is only available for PostgreSQL.")
-
-    def __del__(self):
-        self.close_connection()
 
     def connect(self):
         self.close_connection()
@@ -119,37 +120,21 @@ class ConnectionManager:
 
     def set_db_version(self, version: str):
         """Method to set the database version."""
-        if self.connection:
-            cursor = self.db_cursor
-            if self.db_type == DbType.POSTGRES:
-                cursor.execute(
-                    "INSERT INTO configuration (key_name, value_str) VALUES (%s, %s) ON CONFLICT (key_name) DO UPDATE SET value_str = %s;",
-                    ("db_version", version, version))
-            elif self.db_type == DbType.SQLITE:
-                cursor.execute(
-                    "INSERT OR REPLACE INTO configuration (key_name, value_str) VALUES (?, ?);",
-                    ("db_version", version))
-            self.connection.commit()
+        sql_text = "INSERT INTO configuration (key_name, value_str) VALUES (:conf_key_in, :version_in)"
+        key_fields = ("key_name")
+        params = {"conf_key_in": "db_version", "version_in": version}
+        self.query_execute(QueryMode.UPSERT, sql_text,
+                           params, key_fields=key_fields)
 
     def check_db_version(self):
-        if self.connection:
-            cursor = self.db_cursor
-            try:
-                if self.db_type == DbType.POSTGRES:
-                    sql_text = "SELECT value_str FROM configuration WHERE key_name = %s;"
-                elif self.db_type == DbType.SQLITE:
-                    sql_text = "SELECT value_str FROM configuration WHERE key_name = ?;"
-                cursor.execute(sql_text, ("db_version",))
-                db_ver = cursor.fetchone()
-                if db_ver:
-                    db_ver = db_ver[0]
-                else:
-                    db_ver = "0.0.0"
-            except (psycopg2.Error, sqlite3.Error) as e:
-                self.connection.rollback()
-                db_ver = "0.0.0"
+        sql_text = "SELECT value_str FROM configuration WHERE key_name = :key_in;"
+        params = {"key_in": "db_version"}
+        db_ver = self.query_execute(
+            QueryMode.SELECT, sql_text, params, fetch_one=True)
+        if db_ver:
+            db_ver = db_ver[0]
         else:
-            return False
+            db_ver = "0.0.0"
 
         if db_ver >= DB_VERSION[self.db_type]:
             return True
@@ -159,6 +144,9 @@ class ConnectionManager:
             if input().lower() in ["y", "yes"]:
                 return self.update_db()
             return False
+
+    def query_execute(self, mode: str, sql_text: str, params: dict = None, key_fields: tuple = None, fetch_one: bool = False):
+        return query_helper(self.connection, self.db_type, mode, sql_text, params, key_fields, fetch_one)
 
 
 # Global instance

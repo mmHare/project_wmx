@@ -1,37 +1,27 @@
 """PROJECT WMX"""
 """The Ultimate Learing"""
 
-# import random
 
-
-from src.menu_minigames import menu_minigames
-from src.mod_users import user_manager
-from src.class_config import config_manager
-from src.class_db import connection_manager
 from src.globals import *
 from src.menu_screens import *
+from src.class_db import connection_manager
+from src.menu_minigames import menu_minigames
+from src.class_config import config_manager
 
 
 # starting data load
 config_manager.load_config()
 connection_manager.reconnect()
 
-# startning menus
-config_menu()
-db_settings_screen()
 
-user_manager.user_settings()  # Ekran zarządzania użytkownikami
-
-
-def main_menu():
-    """Main menu function"""
-    pass
+def main():
+    while True:
+        """Main program loop"""
+        main_menu()
+        break
 
 
-while True:
-    """Main program loop"""
-    main_menu()
-    break
+main()
 
 # # Tu można wklejać funkcje
 # def prime_numbers():

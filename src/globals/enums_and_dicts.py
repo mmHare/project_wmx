@@ -16,6 +16,14 @@ class DbType(Enum):
     SQLITE = "sqlite"
 
 
+class QueryMode(Enum):
+    SELECT = "select"
+    INSERT = "insert"
+    UPDATE = "update"
+    DELETE = "delete"
+    UPSERT = "upsert"
+
+
 # dictionary DB kind <-> DB type
 DB_TYPE = {
     DbKind.NONE: DbType.NONE,

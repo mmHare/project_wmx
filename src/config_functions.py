@@ -16,28 +16,6 @@ def get_conf_key_name(key: str) -> str:
             else:
                 return (f"{key}").capitalize()
 
-############################################################
-# def print_config():
-#     """Print configuration settings."""
-#     print("Current configuration:")
-#     for section, settings in config_manager.config.items():
-#         print(section.upper())
-#         for subsection, value in settings.items():
-#             if isinstance(value, dict):
-#                 print(f"  {get_conf_key_name(subsection)}:")
-#                 for subkey, subvalue in value.items():
-#                     print(f"    {get_conf_key_name(subkey)}: {subvalue}")
-#             else:
-#                 print(f"  {get_conf_key_name(subsection)}: {value}")
-
-
-# SENSITIVE_KEYS = {
-#     "CONF_DB_L_USER",
-#     "CONF_DB_L_PASS",
-#     "CONF_DB_C_USER",
-#     "CONF_DB_C_PASS"
-# }
-
 
 def print_config():
     """Print configuration settings."""
@@ -60,9 +38,6 @@ def print_config():
     for section, settings in config_manager.config.items():
         print(section.upper())
         print_section(settings, indent=2)
-
-
-#############################################################
 
 
 def change_settings_value(setting: tuple):

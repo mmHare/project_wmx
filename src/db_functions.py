@@ -1,11 +1,10 @@
 """Database management related functions"""
 
 
-from src.class_db import connection_manager
+import re
+from src.class_db import connection_manager, query_helper
 from src.class_config import config_manager
 from src.globals import *
-
-# UI functions
 
 
 def change_db_type():
@@ -60,3 +59,24 @@ def db_reconnect():
         print("Connection success")
     else:
         print("Connection error")
+
+
+# executing queries
+def query_select(sql_text: str, params: dict = None, fetch_one: bool = False):
+    return connection_manager.query_execute(QueryMode.SELECT, sql_text, params, fetch_one)
+
+
+def query_insert(sql_text: str, params: dict = None):
+    return connection_manager.query_execute(QueryMode.INSERT, sql_text, params)
+
+
+def query_update(sql_text: str, params: dict = None):
+    return connection_manager.query_execute(QueryMode.UPDATE, sql_text, params)
+
+
+def query_delete(sql_text: str, params: dict = None):
+    return connection_manager.query_execute(QueryMode.DELETE, sql_text, params)
+
+
+def query_upsert(sql_text: str, params: dict = None, key_fields: tuple = None):
+    return connection_manager.query_execute(QueryMode.UPSERT, sql_text, params, key_fields)

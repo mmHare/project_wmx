@@ -1,7 +1,10 @@
 """List of program menu screens"""
 
+import types
+
 from src.db_functions import *
 from src.config_functions import *
+from src.users_functions import *
 from src.help_functions import *
 
 
@@ -67,3 +70,33 @@ def db_settings_screen():
     ]
 
     show_menu("Database settings", options)
+
+
+# Users
+def user_management_screen():
+    """Method to display user settings."""
+
+    options = [
+        ("Log out" if user_manager.is_logged else "Log in", menu_user_log_in_log_out),
+        ("User list", menu_list_users),
+        ("Add new user", menu_new_user),
+        ("Delete user", menu_delete_user)
+    ]
+
+    show_menu("User settings", options)
+
+
+############################################################
+
+
+def main_menu():
+    """Main menu of the program"""
+
+    options = [
+        ("Configuration settings", config_menu),
+        ("Database settings", db_settings_screen),
+        ("User settings", user_management_screen)
+    ]
+
+    show_menu("Main menu", options)
+    print("See Ya!")
