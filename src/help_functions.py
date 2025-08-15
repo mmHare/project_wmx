@@ -1,5 +1,6 @@
 """Function utilities"""
 
+import socket
 from cryptography.fernet import Fernet
 import sys
 import time
@@ -66,3 +67,13 @@ def decrypt_data(token):
             return ""
         else:
             print(f"Decryption error: {e}")
+
+
+def get_local_ip():
+    try:
+        hostname = socket.gethostname()
+        IPAddr = socket.gethostbyname(hostname)
+        return IPAddr
+    except Exception as e:
+        print(f"Error getting local IP: {e}")
+        return None

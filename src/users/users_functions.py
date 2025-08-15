@@ -1,7 +1,10 @@
 """Functions for users management"""
 
 import getpass
+
+from .class_user import User
 from .class_user_manager import user_manager
+from src.help_functions import *
 
 
 def menu_user_log_in_log_out():
@@ -34,5 +37,9 @@ def menu_delete_user():
 
 
 def menu_register_user():
-    """save current IP address to db"""
-    pass
+    local_ip = get_local_ip()
+    print(f"Register current IP ({local_ip}) ? (y/n)")
+    if input().strip().lower() == "y":
+        user_manager.register_ip(local_ip)
+    else:
+        print("IP registration canceled.")

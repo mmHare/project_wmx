@@ -79,6 +79,7 @@ def user_management_screen():
 
     options = [
         ("Log out" if user_manager.is_logged else "Log in", menu_user_log_in_log_out),
+        ("Register IP", menu_register_user),
         ("User list", menu_list_users),
         ("Add new user", menu_new_user),
         ("Delete user", menu_delete_user)

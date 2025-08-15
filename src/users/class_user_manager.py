@@ -1,7 +1,7 @@
 """User Class and UserManager Class"""
 
 from src.globals import *
-from src.help_functions import hash_text, check_hashed
+from src.help_functions import *
 from src.database import *
 from .class_user import User
 
@@ -21,8 +21,9 @@ class UserManager:
 
     def get_login_list(self):
         result_list = []
+        sql_text = "SELECT id, login, name, surname FROM users WHERE deleted = false;"
         result = query_select(
-            "SELECT id, login, name, surname FROM users WHERE deleted = false;", dict_result=True)
+            sql_text, dict_result=True)
         if result:
             for item in result:
                 user = User()
@@ -35,9 +36,9 @@ class UserManager:
 
     # if there is a user with the given login (not deleted)
     def check_if_user_exists(self, login):
-        result = query_select_one(
-            "SELECT id FROM users WHERE login = :login AND deleted = false;", {"login": login})
-        if result is not None:
+        sql_text = "SELECT id FROM users WHERE login = :login AND deleted = false;"
+        result = query_select_one(sql_text, {"login": login})
+        if result:
             return result[0] > 0
         else:
             return False
@@ -48,9 +49,9 @@ class UserManager:
             return
 
         result_user = User()
-        result = query_select_one(
-            "SELECT id, name, surname FROM users WHERE login = %s AND deleted = false;", {"login": login}, dict_result=True)
-        if result is None:
+        sql_text = "SELECT id, login, name, surname FROM users WHERE login = :login AND deleted = false;"
+        result = query_select_one(sql_text, {"login": login}, dict_result=True)
+        if result:
             result_user.id = result.get("id", "")
             result_user.login = result.get("login", "")
             result_user.name = result.get("name", "")
@@ -66,14 +67,15 @@ class UserManager:
             print("Password cannot be empty.")
             return False
 
-        result = query_select_one(
-            "SELECT password FROM users WHERE login = %s AND deleted = false;", {"login": login})
-        if not check_hashed(password, result[0]):
+        sql_text = "SELECT password FROM users WHERE login = :login AND deleted = false;"
+        result = query_select_one(sql_text, {"login": login})
+        if not result or not check_hashed(password, result[0]):
             print("Incorrect password.")
             return False
         else:
             self.logged_user = self.get_user_by_login(login)
-            print("Logged in successfully!")
+            if self.is_logged:
+                print("Logged in successfully!")
 
             return True
 
@@ -81,21 +83,36 @@ class UserManager:
         self.logged_user.set_defaults()
 
     def add_user(self, login, name, surname, password):
+        sql_text = "INSERT INTO users (name, surname, login, password) VALUES (:name_in, :surname_in, :login_in, :password_in)"
         user_in = {
             "name_in": name,
             "surname_in": surname,
             "login_in": login,
             "password_in": hash_text(password)
         }
-        result = query_insert(
-            "INSERT INTO users (name, surname, login, password) VALUES (:name_in, :surname_in, :login_in, :password_in)", user_in)
+        result = query_insert(sql_text, user_in)
 
         return result
 
     def delete_user(self, login):
-        result = query_update(
-            "UPDATE users SET deleted = true WHERE login = :login_in;", {"login_in": login})
+        sql_text = "UPDATE users SET deleted = true WHERE login = :login_in;"
+        result = query_update(sql_text, {"login_in": login})
         return result
+
+    def register_ip(self, ip_address):
+        if not self.is_logged:
+            print("User is not logged in.")
+            return
+
+        print(f"Current IP: {ip_address}")
+        if ip_address:
+            print("Registering IP address...")
+            sql_text = "UPDATE users SET ip_address = :ip_address WHERE id = :user_id;"
+            params = {"user_id": self.logged_user.id, "ip_address": ip_address}
+            query_update(sql_text, params)
+            return
+        else:
+            print("Could not retrieve current IP.")
 
 
 # Global instance
