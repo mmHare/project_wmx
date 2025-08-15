@@ -2,17 +2,16 @@
 """The Ultimate Learing"""
 
 
+from src.menu_screens import *
+from src.globals import *
 from src.config import config_manager
 from src.database import connection_manager
-from src.globals import *
-from src.menu_screens import *
-
-
-# starting data load
 
 
 def main():
     clear_screen()
+
+    # starting data load
     config_manager.load_config()
     connection_manager.reconnect()
 
@@ -22,4 +21,5 @@ def main():
         break
 
 
+# start program
 main()

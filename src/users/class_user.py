@@ -10,3 +10,4 @@ class User:
         self.login = ""
         self.name = ""
         self.surname = ""
+        self.ip_address = ""

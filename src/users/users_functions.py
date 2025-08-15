@@ -13,6 +13,16 @@ def menu_user_log() -> tuple:
         return "Log in", menu_user_log_in
 
 
+def menu_user_log_in_only():
+    if not user_manager.is_logged:
+        return "Log in", menu_user_log_in
+
+
+def menu_user_log_out_only():
+    if user_manager.is_logged:
+        return "Log out", menu_user_log_out
+
+
 def menu_user_log_in():
     return user_manager.log_in(input("Login: "), getpass.getpass("Password: "))
 
@@ -28,7 +38,8 @@ def menu_list_users():
     print("Users:")
     usr_list = user_manager.get_login_list()
     for user in usr_list:
-        print("-", user.login)
+        print(
+            f"{user.login} ({user.ip_address if user.ip_address else 'No IP registered'})")
 
 
 def menu_new_user():

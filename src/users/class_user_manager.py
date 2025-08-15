@@ -22,7 +22,7 @@ class UserManager:
 
     def get_login_list(self):
         result_list = []
-        sql_text = "SELECT id, login, name, surname FROM users WHERE deleted = false;"
+        sql_text = "SELECT * FROM users WHERE deleted = false;"
         result = query_select(
             sql_text, dict_result=True)
         if result:
@@ -32,6 +32,7 @@ class UserManager:
                 user.login = item.get("login", "")
                 user.name = item.get("name", "")
                 user.surname = item.get("surname", "")
+                user.ip_address = item.get("ip_address", "")
                 result_list.append(user)
         return result_list
 
@@ -49,16 +50,17 @@ class UserManager:
             print("Login cannot be empty.")
             return
 
-        result_user = User()
-        sql_text = "SELECT id, login, name, surname FROM users WHERE login = :login AND deleted = false;"
+        user = User()
+        sql_text = "SELECT * FROM users WHERE login = :login AND deleted = false;"
         result = query_select_one(sql_text, {"login": login}, dict_result=True)
         if result:
-            result_user.id = result.get("id", "")
-            result_user.login = result.get("login", "")
-            result_user.name = result.get("name", "")
-            result_user.surname = result.get("surname", "")
+            user.id = result.get("id", "")
+            user.login = result.get("login", "")
+            user.name = result.get("name", "")
+            user.surname = result.get("surname", "")
+            user.ip_address = result.get("ip_address", "")
 
-        return result_user
+        return user
 
     def log_in(self, login, password) -> bool:
         if not self.check_if_user_exists(login):

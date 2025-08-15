@@ -5,20 +5,29 @@ from src.database import *
 from src.users import *
 from src.help_functions import *
 from src.menu_functions import show_menu
+from src.minigames import *
 
 
 def main_menu():
     """Main menu of the program"""
 
     options = [
-        (lambda: menu_user_log if not user_manager.is_logged else None),
+        (menu_user_log_in_only),
         ("Configuration settings", config_menu),
         ("Database settings", db_settings_screen),
-        ("User settings", user_management_screen)
+        ("User settings", user_management_screen),
+        (get_menu_minigames),
+        (menu_user_log_out_only)
     ]
 
-    show_menu("Main menu", options, info_top=get_logged_user_info)
+    show_menu("Main menu", options, info_top=info_user_connection)
     print("See Ya!")
+
+########################################################
+
+
+def info_user_connection():
+    return get_logged_user_info() + "\n" + connected_db_str()
 
 ########################################################
 
