@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS public.users (
 	login varchar NULL,
 	deleted bool DEFAULT false NOT NULL,
 	"password" varchar NULL,
-	user_role varchar NULL,
+	user_role int4 NULL,
 	ip_address varchar NULL,
 	CONSTRAINT users_pk PRIMARY KEY (id)
 );

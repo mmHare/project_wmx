@@ -64,10 +64,16 @@ def db_reconnect():
         print("Connection error")
 
 
+def menu_connect():
+    if not connection_manager.connection:
+        return "Connect", connection_manager
+    else:
+        None, None
+
+
 def connected_db_str():
-    if connection_manager.connection:
-        return f"Connected to {DB_KIND[connection_manager.db_type].value} database"
-    return "Not connected to any database"
+    result = f"Database: {DB_KIND[connection_manager.db_type].value.capitalize()}"
+    return result + " - Connected" if connection_manager.connection else " - not connected"
 
 
 # executing queries

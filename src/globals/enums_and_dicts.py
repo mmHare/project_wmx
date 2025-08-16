@@ -24,6 +24,12 @@ class QueryMode(Enum):
     UPSERT = "upsert"
 
 
+class UserRole(Enum):
+    NONE = 0
+    ADMIN = 1
+    USER = 2
+
+
 # dictionary DB kind <-> DB type
 DB_TYPE = {
     DbKind.NONE: DbType.NONE,

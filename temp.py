@@ -1,4 +1,15 @@
 
+
+# def display_menu(functions_list: list):
+#     print()
+#     print("="*10, "MENU", "="*10)
+#     print("0 - Exit")
+#     for function in functions_list:
+#         command = functions_list.index(function) + 1
+#         name = function.__name__.replace("_", " ").title()
+#         print(f"{command} - {name}")
+
+
 # # Tu można wklejać funkcje
 # def prime_numbers():
 #     print("Wypiszę wszystkie liczby pierwsze w podanym zakresie.")

@@ -24,6 +24,7 @@ def show_menu(title, options: list, info_top=None, info_bottom=None):
 
         if info_top:
             print(info_top() if callable(info_top) else info_top)
+            print()
 
         for option in options:
             try:
@@ -47,7 +48,9 @@ def show_menu(title, options: list, info_top=None, info_bottom=None):
         print("0. Exit")
 
         if info_bottom:
+            print()
             print(info_bottom() if callable(info_bottom) else info_bottom)
+        print()
 
         choice = input("Select an option: ").strip()
 
@@ -70,13 +73,3 @@ def func_to_tuple(func):
         desc, func_out = func()
         return (desc, func_out)
     return None
-
-
-def display_menu(functions_list: list):
-    print()
-    print("="*10, "MENU", "="*10)
-    print("0 - Exit")
-    for function in functions_list:
-        command = functions_list.index(function) + 1
-        name = function.__name__.replace("_", " ").title()
-        print(f"{command} - {name}")

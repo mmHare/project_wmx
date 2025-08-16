@@ -14,6 +14,6 @@ CREATE TABLE IF NOT EXISTS users (
     login TEXT,
     deleted INTEGER DEFAULT 0 NOT NULL,
     "password" TEXT,
-    user_role TEXT,
+    user_role INTEGER,
     ip_address TEXT
 );

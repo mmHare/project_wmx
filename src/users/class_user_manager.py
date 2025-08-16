@@ -16,10 +16,6 @@ class UserManager:
     def is_logged(self):
         return (self.logged_user.login != "")
 
-    @property
-    def is_super_admin(self):
-        return (self.logged_user.login == "SuperAdmin")
-
     def get_login_list(self):
         result_list = []
         sql_text = "SELECT * FROM users WHERE deleted = false;"
@@ -33,6 +29,10 @@ class UserManager:
                 user.name = item.get("name", "")
                 user.surname = item.get("surname", "")
                 user.ip_address = item.get("ip_address", "")
+                try:
+                    user.user_role = UserRole(item.get("user_role", 0))
+                except ValueError:
+                    user.user_role = UserRole.NONE
                 result_list.append(user)
         return result_list
 
@@ -59,7 +59,10 @@ class UserManager:
             user.name = result.get("name", "")
             user.surname = result.get("surname", "")
             user.ip_address = result.get("ip_address", "")
-
+            try:
+                user.user_role = UserRole(result.get("user_role", 0))
+            except ValueError:
+                user.user_role = UserRole.NONE
         return user
 
     def log_in(self, login, password) -> bool:
@@ -85,13 +88,14 @@ class UserManager:
     def log_out(self):
         self.logged_user.set_defaults()
 
-    def add_user(self, login, name, surname, password):
-        sql_text = "INSERT INTO users (name, surname, login, password) VALUES (:name_in, :surname_in, :login_in, :password_in)"
+    def add_user(self, user: User, password):
+        sql_text = "INSERT INTO users (name, surname, login, password, user_role) VALUES (:name_in, :surname_in, :login_in, :password_in, :user_role_in)"
         user_in = {
-            "name_in": name,
-            "surname_in": surname,
-            "login_in": login,
-            "password_in": hash_text(password)
+            "name_in": user.name,
+            "surname_in": user.surname,
+            "login_in": user.login,
+            "password_in": hash_text(password),
+            "user_role_in": user.user_role.value
         }
         result = query_insert(sql_text, user_in)
 
