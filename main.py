@@ -2,10 +2,9 @@
 """The Ultimate Learing"""
 
 
-from src.menu_screens import *
-from src.globals import *
 from src.config import config_manager
 from src.database import connection_manager
+from src.menu_screens import *
 
 
 def main():

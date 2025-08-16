@@ -144,6 +144,7 @@ class ConnectionManager:
             db_ver = "0.0.0"
 
         if db_ver >= DB_VERSION[self.db_type]:
+            print(f"Database is up to date. Version {db_ver}")
             return True
         else:
             print(

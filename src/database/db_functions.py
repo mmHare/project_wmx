@@ -35,7 +35,6 @@ def change_db_type():
         print("Failed to connect to the database.")
     else:
         if connection_manager.check_db_version():
-            print("Database is up to date.")
             # db ok so saving to config
             config_manager.config[CONF_DATABASE][CONF_DB_KIND] = DB_KIND[connection_manager.db_type].value
             config_manager.save_config()
@@ -44,10 +43,7 @@ def change_db_type():
 
 
 def check_db_version():
-    if connection_manager.check_db_version():
-        print("Database is up to date.")
-    else:
-        print("Database update failed.")
+    connection_manager.check_db_version()
 
 
 def check_db_connection():

@@ -18,7 +18,8 @@ def main_menu():
         ("Database settings", db_settings_screen),
         ("User settings", user_management_screen),
         (get_menu_minigames),
-        (menu_user_log_out_if_visible)
+        (menu_user_log_out_if_visible),
+        ("About", about_screen)
     ]
 
     show_menu("Main menu", options, info_top=info_user_connection)
@@ -29,6 +30,15 @@ def main_menu():
 
 def info_user_connection():
     return connected_db_str() + "\n" + get_logged_user_info()
+
+
+def about_screen():
+    print("About this program:")
+    print("PROJECT WMX - The Ultimate Learning Experience")
+    print(f"Version {PROGRAM_VERSION}")
+    print("Developed by: Wojciech & Maciej Zając")
+    print("Description: This program is designed to help designers to gain Python exp")
+    input("Press Enter to return to the main menu.")
 
 ########################################################
 
