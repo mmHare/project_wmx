@@ -2,10 +2,31 @@
 
 import types
 
-from src.help_functions import *
+from src.globals.help_functions import *
 
 
-def show_menu(title, options: list, info_top=None, info_bottom=None):
+def func_to_tuple(func):
+    """Convert function to menu tuple"""
+    if type(func) == types.FunctionType:
+        desc, func_out = func()
+        return (desc, func_out)
+    return None
+
+
+def parse_option(opt):
+    try:
+        if type(opt) == types.FunctionType:
+            desc, func = opt()
+        elif type(opt) == tuple:
+            desc, func = opt
+        else:
+            desc, func = None, None
+        return desc, func
+    except:
+        return None, None
+
+
+def show_menu(title, options: list, info_top=None, info_bottom=None, conditional_options=None):
     """Display a menu with the given title and options.
 
     Args:
@@ -13,7 +34,9 @@ def show_menu(title, options: list, info_top=None, info_bottom=None):
         options (list): A list of tuples containing option descriptions and their corresponding functions. Or function returning such tuple.
         info_top (optional): Additional information to display at the top of the menu (str or func returning str). Defaults to None.
         info_bottom (optional): Additional information to display at the bottom of the menu (str or func returning str). Defaults to None.
+        conditional_options (optional): A function that returns a list of additional menu options based on certain conditions. Defaults to None.
     """
+
     if len(options) == 0:
         return
 
@@ -22,36 +45,36 @@ def show_menu(title, options: list, info_top=None, info_bottom=None):
         menu_options = []
         print("=" * 10, title.upper(), "=" * 10)
 
+        # header
         if info_top:
             print(info_top() if callable(info_top) else info_top)
             print()
 
+        # options
         for option in options:
-            try:
-                if type(option) == types.FunctionType:
-                    desc, func = option()
-                elif type(option) == tuple:
-                    desc, func = option
-                else:
-                    desc, func = None, None
+            desc, func = parse_option(option)
+            if desc or func:
+                menu_options.append((desc, func))
 
-                menu_option = (desc, func)
-                if not desc and not func:
-                    continue
-                else:
-                    menu_options.append(menu_option)
-            except:
-                continue
+        # conditional options
+        if conditional_options:
+            for option in conditional_options():
+                desc, func = parse_option(option)
+                if desc or func:
+                    menu_options.append((desc, func))
 
+        # printing options
         for i, option in enumerate(menu_options):
             print(f"{i + 1}. {option[0]}")
         print("0. Exit")
 
+        # footer
         if info_bottom:
             print()
             print(info_bottom() if callable(info_bottom) else info_bottom)
         print()
 
+        # user input
         choice = input("Select an option: ").strip()
 
         if choice in ['0', 'q']:
@@ -65,11 +88,3 @@ def show_menu(title, options: list, info_top=None, info_bottom=None):
             print("Wrong option. Try again.")
         print()
         input("Press ENTER to continue...")
-
-
-def func_to_tuple(func):
-    """Convert function to menu tuple"""
-    if type(func) == types.FunctionType:
-        desc, func_out = func()
-        return (desc, func_out)
-    return None

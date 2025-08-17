@@ -69,7 +69,7 @@ def menu_connect():
 
 def connected_db_str():
     result = f"Database: {DB_KIND[connection_manager.db_type].value.capitalize()}"
-    return result + " - Connected" if connection_manager.connection else " - not connected"
+    return result + f" - {bcolors.OKGREEN}Connected{bcolors.ENDC}" if connection_manager.connection else f" - {bcolors.FAIL}Not connected{bcolors.ENDC}"
 
 
 # executing queries

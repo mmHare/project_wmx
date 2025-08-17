@@ -69,6 +69,7 @@ def decrypt_data(token):
             print(f"Decryption error: {e}")
 
 
+# networking
 def get_local_ip():
     try:
         hostname = socket.gethostname()

@@ -6,7 +6,7 @@ from src.users.class_user import User
 
 from .class_user_manager import user_manager
 from src.database import connection_manager
-from src.help_functions import *
+from src.globals import *
 
 
 # Menu function tuples
@@ -19,13 +19,6 @@ def menu_user_log_in_if_visible() -> tuple:
         return None, None
 
 
-def menu_user_log_out_if_visible() -> tuple:
-    if connection_manager.connection and user_manager.is_logged:
-        return "Log out", menu_user_log_out
-    else:
-        return None, None
-
-
 def menu_register_user() -> tuple:
     if user_manager.is_logged:
         local_ip = get_local_ip()
@@ -33,12 +26,6 @@ def menu_register_user() -> tuple:
     else:
         return None, None
 
-
-def menu_delete_user_if_visible() -> tuple:
-    if user_manager.is_logged and user_manager.logged_user.is_admin:
-        return "Delete user", menu_delete_user
-    else:
-        return None, None
 
 # Menu options
 

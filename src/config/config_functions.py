@@ -3,7 +3,7 @@
 from copy import deepcopy
 import getpass
 
-from src.help_functions import *
+from src.globals.help_functions import *
 from src.config import *
 from .class_config import *
 

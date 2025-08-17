@@ -7,7 +7,7 @@ from psycopg2.extras import RealDictCursor
 import sqlite3
 
 from src.globals import *
-from src.help_functions import *
+from src.globals.help_functions import *
 from src.config import config_manager
 from .sql_helper import *
 

@@ -16,8 +16,12 @@ This project is meant for learning purposes. Console type program features:
 * Database connection 
     - "Central" connection with Postgre (server and credentials must be provided, user also needs permissions to select, insert, update and delete)
     - "Local" connection with SQLite database (can be created if does not exist)
-    - Script executed database update (triggered by comparing database version number) - structure can be provided in scripts in sources and database will be updated
-    - Helper function for query execution with variable parameters for given Db type (mainly used for simple queries of select, insert, update, delete or upsert)
+    - Script executed database schema update (triggered by comparing database version number) - structure can be provided in scripts in sources and database will be updated
+        - Update is based on upserts and was not tested for changes in table structure
+        - Both databases have separate directories for scripts and both are checked against their respective version numbers
+    - Helper function for query execution with variable parameters for given Db type (generally used for simple queries of select, insert, update, delete or upsert)
+        - 'Simple queries' are mainly due to limitations of SQLite
+        - It should handle multiple queries, but I cannot guarantee the performance (WZ)
     - Database can be switched in program settings
 * User management system
     - Added/deleted users are in database table
