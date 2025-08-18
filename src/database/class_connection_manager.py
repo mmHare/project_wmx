@@ -7,9 +7,10 @@ from psycopg2.extras import RealDictCursor
 import sqlite3
 
 from src.globals import *
-from src.globals.help_functions import *
-from src.config import config_manager
-from .sql_helper import *
+from .sql_helper import query_select, query_modify
+from src.config.class_config import get_config_manager
+
+config_manager = get_config_manager()
 
 
 class ConnectionManager:
@@ -38,15 +39,6 @@ class ConnectionManager:
         else:
             return self.connection.cursor()
 
-    @property
-    def db_cursor_dict(self):
-        """Returns a cursor with dictionary-like access."""
-        if self.db_type == DbType.POSTGRES:
-            return self.connection.cursor(cursor_factory=RealDictCursor)
-        else:
-            raise Exception(
-                "Dictionary cursor is only available for PostgreSQL.")
-
     def connect(self, db_kind=None):
         self.close_connection()
         # central or local
@@ -62,29 +54,37 @@ class ConnectionManager:
                         CONF_DB_C_NAME, CONF_DB_C_USER, CONF_DB_C_PASS,
                         CONF_DB_C_HOST, CONF_DB_C_PORT]):
 
-                    connection = psycopg2.connect(
+                    self.connection = psycopg2.connect(
                         database=db_config[CONF_DB_C_NAME],
                         user=decrypt_data(db_config[CONF_DB_C_USER]),
                         password=decrypt_data(db_config[CONF_DB_C_PASS]),
                         host=db_config[CONF_DB_C_HOST],
                         port=db_config[CONF_DB_C_PORT]
                     )
-                    return connection
                 else:
                     print("Database configuration is incomplete. Verify settings.")
                     return None
             elif self.db_type == DbType.SQLITE:
                 db_config = db_config[CONF_DB_LOCAL]
-                if not os.path.exists(db_config[CONF_DB_L_PATH]):
-                    if input("Database file not found. Do you want to create it? (y/n): ").lower() != 'y':
+
+                db_path = os.path.join(
+                    db_config[CONF_DB_L_PATH], db_config[CONF_DB_L_NAME])
+
+                is_new = not os.path.isfile(db_path)
+
+                if is_new:
+                    if input(f"Database file '{db_config[CONF_DB_L_NAME]}' not found. Do you want to create it? (y/n): ").lower() != 'y':
                         return None
                     else:
                         os.makedirs(db_config[CONF_DB_L_PATH], exist_ok=True)
-                connection = sqlite3.connect(
-                    db_config[CONF_DB_L_PATH] + "/" + db_config[CONF_DB_L_NAME])
-                return connection
+
+                self.connection = sqlite3.connect(db_path)
+                if is_new:
+                    self.update_db()
             else:
                 return None
+
+            return self.connection
         except psycopg2.Error as e:
             print(f"Error connecting to database: {e}")
             return None
@@ -95,23 +95,25 @@ class ConnectionManager:
 
     def reconnect(self):
         self.connection = self.connect()
-        if not self.connection:
-            return False
-        else:
+        if self.connection:
+            self.check_db_version()
             return True
+        else:
+            return False
 
     def update_db(self):
         """Method to update the database schema."""
-        if self.connection:
-            cursor = self.db_cursor
-            # file = open(
-            #     f"src/sql/{self.db_type.value}/schema/create_tables.sql", 'r')
-            sql_path = Path(__file__).parent / "sql" / \
-                self.db_type.value / "schema" / "create_tables.sql"
+        if not self.connection:
+            return False
 
-            with open(sql_path, "r", encoding="utf-8") as file:
-                sql = " ".join(file.readlines())
+        cursor = self.db_cursor
+        sql_path = Path(__file__).parent / "sql" / \
+            self.db_type.value / "schema" / "create_tables.sql"
 
+        with open(sql_path, "r", encoding="utf-8") as file:
+            sql = " ".join(file.readlines())
+
+        try:
             if self.db_type == DbType.POSTGRES:
                 cursor.execute(sql)
             elif self.db_type == DbType.SQLITE:
@@ -119,25 +121,33 @@ class ConnectionManager:
                     if statement.strip():
                         cursor.execute(statement)
             self.connection.commit()
-            self.set_db_version(DB_VERSION[self.db_type])
-            print("Database updated successfully.")
-            return True
-        else:
+        except Exception as e:
+            print(f"Error ocurred during update: {e}")
+            self.connection.rollback()
             return False
+
+        try:
+            self.set_db_version(DB_VERSION[self.db_type])
+        except Exception as e:
+            print(f"Error setting database version: {e}")
+            return False
+        print("Database updated successfully.")
+        return True
 
     def set_db_version(self, version: str):
         """Method to set the database version."""
-        sql_text = "INSERT INTO configuration (key_name, value_str) VALUES (:conf_key_in, :version_in)"
-        key_fields = ("key_name")
+        key_fields = ("key_name",)
         params = {"conf_key_in": "db_version", "version_in": version}
-        self.query_execute(QueryMode.UPSERT, sql_text,
-                           params, key_fields=key_fields)
+        sql_text = "INSERT INTO configuration(key_name, value_str) VALUES(:conf_key_in, :version_in)"
+
+        self.exec_sql_modify(QueryMode.UPSERT, sql_text,
+                             params, key_fields=key_fields)
 
     def check_db_version(self):
         sql_text = "SELECT value_str FROM configuration WHERE key_name = :key_in;"
         params = {"key_in": "db_version"}
-        db_ver = self.query_execute(
-            QueryMode.SELECT, sql_text, params, fetch_one=True)
+
+        db_ver = self.exec_sql_select(sql_text, params, fetch_one=True)
         if db_ver:
             db_ver = db_ver[0]
         else:
@@ -153,9 +163,26 @@ class ConnectionManager:
                 return self.update_db()
             return False
 
-    def query_execute(self, mode: str, sql_text: str, params: dict = None, key_fields: tuple = None, fetch_one: bool = False, dict_result: bool = False):
-        return query_helper(self.connection, self.db_type, mode, sql_text, params, key_fields, fetch_one, dict_result)
+    def exec_sql_select(self, sql_text: str, params: dict = None, fetch_one: bool = False, dict_result: bool = False):
+        try:
+            return query_select(self.connection, self.db_type, sql_text, params, fetch_one, dict_result)
+        except Exception as e:
+            print(f"Error executing SELECT query: {e}")
+
+    def exec_sql_modify(self, mode: QueryMode, sql_text: str, params: dict = None, key_fields: tuple = None):
+        try:
+            return query_modify(self.connection, self.db_type,
+                                mode, sql_text, params, key_fields)
+        except Exception as e:
+            print(f"Error executing query: {e}")
 
 
-# Global instance
-connection_manager = ConnectionManager()
+# Instance
+_connection_manager = None
+
+
+def get_connection_manager():
+    global _connection_manager
+    if _connection_manager is None:
+        _connection_manager = ConnectionManager()
+    return _connection_manager

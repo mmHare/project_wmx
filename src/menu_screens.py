@@ -1,10 +1,10 @@
 """List of program menu screens"""
 
-from src.config import *
-from src.database import *
-from src.users import *
-from src.globals.help_functions import *
 from src.menu_functions import show_menu
+from src.config.config_functions import *
+from src.database.db_functions import *
+from src.users.users_functions import *
+from src.globals.help_functions import *
 from src.minigames import *
 
 
@@ -35,7 +35,7 @@ def main_options_for_logged_user():
     # conditional options for main menu
     options_list = []
     if connection_manager.connection and user_manager.is_logged:
-        # options_list.append(("Dictionary tables", dictionary_tables_screen))
+        options_list.append(("Dictionary tables", dictionary_tables_screen))
         options_list.append(("Log out", menu_user_log_out))
 
     options_list.append(("About", about_screen))
@@ -49,15 +49,20 @@ def about_screen():
     print("PROJECT WMX - The Ultimate Learning Experience")
     print(f"Version {PROGRAM_VERSION}")
     print("Developed by: Wojciech & Maciej Zając")
-    print("Description: This program is designed to help designers to gain Python exp")
+    print("This program is designed to help designers gain Python exp")
     input("Press Enter to return to the main menu.")
 
 
 def config_menu():
     """Method to display configuration settings."""
+    def settings_changed():
+        if change_settings():
+            user_manager.log_out()
+            connection_manager.reconnect()
+
     options = [
         ("View current settings", print_config),
-        ("Change settings", change_settings),
+        ("Change settings", settings_changed),
         ("Restore to defaults", restore_settings)
     ]
 
@@ -66,11 +71,16 @@ def config_menu():
 
 def db_settings_screen():
     """Method to display database settings."""
+    def settings_changed():
+        if change_db_type():
+            user_manager.log_out()
+            connection_manager.reconnect()
+
     options = [
         ("Check database connection", check_db_connection),
         ("Reconnect to database", db_reconnect),
         ("Check database version", check_db_version),
-        ("Change database type", change_db_type)
+        ("Change database type", settings_changed)
     ]
 
     show_menu("Database settings", options, info_top=connected_db_str)

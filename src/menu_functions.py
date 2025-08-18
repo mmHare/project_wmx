@@ -2,7 +2,7 @@
 
 import types
 
-from src.globals.help_functions import *
+from src.globals.help_functions import clear_screen
 
 
 def func_to_tuple(func):
@@ -84,6 +84,8 @@ def show_menu(title, options: list, info_top=None, info_bottom=None, conditional
             if type(func_tmp) == types.FunctionType:
                 clear_screen()
                 func_tmp()
+        elif choice == "":
+            continue
         else:
             print("Wrong option. Try again.")
         print()

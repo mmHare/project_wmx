@@ -1,6 +1,8 @@
 from src.minigames import bulls_n_cows, fifteen_puzzle
 from src.menu_functions import show_menu
-from src.users import user_manager
+from src.users.class_user_manager import get_user_manager
+
+user_manager = get_user_manager()
 
 
 def get_menu_minigames():

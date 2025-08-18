@@ -9,7 +9,7 @@ class User:
         self.set_defaults()
 
     def set_defaults(self):
-        self.id = ""
+        self.id = 0
         self.login = ""
         self.name = ""
         self.surname = ""

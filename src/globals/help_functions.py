@@ -6,7 +6,9 @@ import sys
 import time
 import hashlib
 import os
+
 from src.globals import *
+from src.globals.glob_constants import *
 
 
 def clear_screen():

@@ -1,9 +1,12 @@
 """Database management related functions"""
 
 
-from .class_db import connection_manager
-from src.config import config_manager
 from src.globals import *
+from src.database.class_connection_manager import get_connection_manager
+from src.config.config_functions import get_config_manager
+
+connection_manager = get_connection_manager()
+config_manager = get_config_manager()
 
 
 def change_db_type():
@@ -23,7 +26,7 @@ def change_db_type():
     choice = int(choice)
 
     if choice == 0:
-        return
+        return False
     elif choice == 1:
         connection_manager.connection = connection_manager.connect(
             DbKind.CENTRAL.value)
@@ -40,10 +43,14 @@ def change_db_type():
             config_manager.save_config()
         else:
             print("Database update failed.")
+    return True
 
 
 def check_db_version():
-    connection_manager.check_db_version()
+    try:
+        connection_manager.check_db_version()
+    except Exception as e:
+        print("Error while checking database version:", e)
 
 
 def check_db_connection():
@@ -54,17 +61,42 @@ def check_db_connection():
 
 
 def db_reconnect():
-    if connection_manager.reconnect():
-        print("Connection success")
+    try:
+        result = connection_manager.reconnect()
+        if result:
+            print("Connection success.")
+        else:
+            print("Connection error.")
+    except Exception as e:
+        print("Error while reconnecting to database:", e)
+    return result
+
+
+def db_connect():
+    connection_manager.connect()
+    if connection_manager.connection:
+        print("Connection success.")
     else:
-        print("Connection error")
+        print("Could not connect to database.")
+
+
+def db_disconnect():
+    try:
+        print("Closing connection...")
+        connection_manager.close_connection()
+        if not connection_manager.connection:
+            print("Connection closed.")
+        else:
+            print("Connection was not closed.")
+    except Exception as e:
+        print("Error while disconnecting:", e)
 
 
 def menu_connect():
     if not connection_manager.connection:
-        return "Connect", connection_manager
+        return "Connect", db_connect
     else:
-        None, None
+        return None, None
 
 
 def connected_db_str():
@@ -73,25 +105,25 @@ def connected_db_str():
 
 
 # executing queries
-def query_select(sql_text: str, params: dict = None, fetch_one: bool = False, dict_result: bool = False):
-    return connection_manager.query_execute(QueryMode.SELECT, sql_text, params, fetch_one=fetch_one, dict_result=dict_result)
+def query_select(sql_text: str, params: dict = None, dict_result: bool = False):
+    return connection_manager.exec_sql_select(sql_text, params, dict_result=dict_result)
 
 
 def query_select_one(sql_text: str, params: dict = None, dict_result: bool = False):
-    return connection_manager.query_execute(QueryMode.SELECT, sql_text, params, fetch_one=True, dict_result=dict_result)
+    return connection_manager.exec_sql_select(sql_text, params, fetch_one=True, dict_result=dict_result)
 
 
 def query_insert(sql_text: str, params: dict = None):
-    return connection_manager.query_execute(QueryMode.INSERT, sql_text, params)
+    return connection_manager.exec_sql_modify(QueryMode.INSERT, sql_text, params)
 
 
 def query_update(sql_text: str, params: dict = None):
-    return connection_manager.query_execute(QueryMode.UPDATE, sql_text, params)
+    return connection_manager.exec_sql_modify(QueryMode.UPDATE, sql_text, params)
 
 
 def query_delete(sql_text: str, params: dict = None):
-    return connection_manager.query_execute(QueryMode.DELETE, sql_text, params)
+    return connection_manager.exec_sql_modify(QueryMode.DELETE, sql_text, params)
 
 
 def query_upsert(sql_text: str, params: dict = None, key_fields: tuple = None):
-    return connection_manager.query_execute(QueryMode.UPSERT, sql_text, params, key_fields)
+    return connection_manager.exec_sql_modify(QueryMode.UPSERT, sql_text, params, key_fields)

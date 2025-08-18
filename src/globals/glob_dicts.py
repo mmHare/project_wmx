@@ -1,6 +1,6 @@
 """Dictionary mappings"""
 
-from src.globals import *
+from .glob_enums import DbKind, DbType
 
 # dictionary DB kind <-> DB type
 DB_TYPE = {
@@ -13,6 +13,6 @@ DB_KIND = {v: k for k, v in DB_TYPE.items()}  # reverse to DB_TYPE
 
 # dictionary with DB versions
 DB_VERSION = {
-    DbType.POSTGRES: "1.0.0",
-    DbType.SQLITE: "1.0.0"
+    DbType.POSTGRES: "1.0.1",
+    DbType.SQLITE: "1.0.1"
 }

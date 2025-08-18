@@ -3,9 +3,13 @@
 from copy import deepcopy
 import getpass
 
-from src.globals.help_functions import *
-from src.config import *
-from .class_config import *
+from src.globals.glob_constants import *
+from src.globals.glob_enums import *
+from src.globals.help_functions import encrypt_data
+from src.config.class_config import get_config_manager, config_defaults, SENSITIVE_CONFIG_KEYS
+
+
+config_manager = get_config_manager()
 
 
 def get_conf_key_name(key: str) -> str:
@@ -87,7 +91,7 @@ def loop_through_settings(config, changes_done: bool = False, base_level: bool =
             print(f"{i + 1}. {get_conf_key_name(section).capitalize()}")
 
         choice = input("Select a section to change (or '0' to quit): ").strip()
-        if choice == '0':  # exit settings
+        if choice in ['0', 'q']:  # exit settings
             return settings_changed
         elif choice.isdigit() and 0 <= int(choice) - 1 < len(sections):
             # option selected
@@ -112,6 +116,7 @@ def loop_through_settings(config, changes_done: bool = False, base_level: bool =
 
 def change_settings():
     """Change configuration settings."""
+    initial_db_kind = config_manager.config[CONF_DATABASE][CONF_DB_KIND]
     config_initial = deepcopy(config_manager.config)
 
     if loop_through_settings(config_manager.config, base_level=True) == 1:
@@ -119,6 +124,7 @@ def change_settings():
             config_manager.save_config()
         else:
             config_manager.config = deepcopy(config_initial)
+    return config_manager.config[CONF_DATABASE][CONF_DB_KIND] != initial_db_kind
 
 
 def restore_settings():

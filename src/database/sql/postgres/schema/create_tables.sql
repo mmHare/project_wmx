@@ -19,3 +19,12 @@ CREATE TABLE IF NOT EXISTS public.users (
 	ip_address varchar NULL,
 	CONSTRAINT users_pk PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS public.dict_tables(
+	id serial4 NOT NULL,
+	table_name varchar NOT NULL,
+	description varchar NULL,
+	visibility int4 NULL,
+	created_by int4 NULL,
+	CONSTRAINT dict_tables_pk PRIMARY KEY (id)
+);

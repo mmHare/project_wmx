@@ -1,8 +1,10 @@
 import json
-
-from src.globals import *
-from src.globals.help_functions import *
 from copy import deepcopy
+import sys
+
+from src.globals.glob_enums import DbKind
+from src.globals.glob_constants import *
+from src.globals.help_functions import encrypt_data
 
 
 # set of config keys that should be shown hidden
@@ -96,5 +98,12 @@ class ConfigManager:
             print(f"Error saving configuration: {e}")
 
 
-# Global class instance
-config_manager = ConfigManager()
+# Instance
+_config_manager = None
+
+
+def get_config_manager():
+    global _config_manager
+    if _config_manager is None:
+        _config_manager = ConfigManager()
+    return _config_manager

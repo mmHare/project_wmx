@@ -1,9 +1,8 @@
 """User Class and UserManager Class"""
 
-import getpass
-from src.globals import *
-from src.globals.help_functions import *
-from src.database import *
+from src.database.db_functions import query_insert, query_select, query_select_one, query_update
+from src.globals.glob_enums import UserRole
+from src.globals.help_functions import check_hashed, hash_text
 from .class_user import User
 
 
@@ -39,7 +38,8 @@ class UserManager:
     # if there is a user with the given login (not deleted)
     def check_if_user_exists(self, login):
         sql_text = "SELECT id FROM users WHERE login = :login AND deleted = false;"
-        result = query_select_one(sql_text, {"login": login})
+        params = {"login": login}
+        result = query_select_one(sql_text, params)
         if result:
             return result[0] > 0
         else:
@@ -111,16 +111,23 @@ class UserManager:
             print("User is not logged in.")
             return
 
-        print(f"Current IP: {ip_address}")
+        print("Registering IP address...")
         if ip_address:
-            print("Registering IP address...")
             sql_text = "UPDATE users SET ip_address = :ip_address WHERE id = :user_id;"
             params = {"user_id": self.logged_user.id, "ip_address": ip_address}
             query_update(sql_text, params)
+            print("Successfully registered IP address.")
             return
         else:
             print("Could not retrieve current IP.")
 
 
-# Global instance
-user_manager = UserManager()
+# Instance
+_user_manager = None
+
+
+def get_user_manager():
+    global _user_manager
+    if _user_manager is None:
+        _user_manager = UserManager()
+    return _user_manager

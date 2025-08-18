@@ -2,18 +2,17 @@
 
 import getpass
 
-from src.users.class_user import User
+from src.globals import UserRole, get_local_ip
+from .class_user import User
+from src.users.class_user_manager import get_user_manager
 
-from .class_user_manager import user_manager
-from src.database import connection_manager
-from src.globals import *
-
+user_manager = get_user_manager()
 
 # Menu function tuples
 
 
 def menu_user_log_in_if_visible() -> tuple:
-    if connection_manager.connection and not user_manager.is_logged:
+    if not user_manager.is_logged:
         return "Log in", menu_user_log_in
     else:
         return None, None
@@ -41,12 +40,16 @@ def menu_user_log_out():
     return False
 
 
+def log_out_silent():
+    user_manager.log_out()
+    return user_manager.is_logged
+
+
 def menu_list_users():
     print("Users:")
-    usr_list = user_manager.get_login_list()
-    for user in usr_list:
+    for user in user_manager.get_login_list():
         print(
-            f"{user.login} ({user.ip_address if user.ip_address else 'No IP registered'})")
+            f"  {user.login} ({user.ip_address if user.ip_address else 'No IP registered'})")
 
 
 def menu_new_user():
@@ -64,14 +67,23 @@ def menu_new_user():
 
     print("New user")
     user = User()
+    failed_count = 0
     while True:
         login = input("Login: ")
+        if login == "q":
+            print("Cancelling operation...")
+            return
         if validate_text(login):
             if not user_manager.check_if_user_exists(login):
                 user.login = login
                 break
             else:
                 print("User already exists.")
+        else:
+            failed_count += 1
+            if failed_count > 2:
+                print("Cancelling operation...")
+                return
 
     user.name = input("Name: ")
     user.surname = input("Surname: ")
@@ -89,7 +101,7 @@ def menu_new_user():
 
     choice = input(f"Do you want to create user {login}? (y/n): ")
     if choice.strip().lower() == "y":
-        user_manager.add_user(login, user, password)
+        user_manager.add_user(user, password)
 
 
 def menu_delete_user():
@@ -114,7 +126,7 @@ def menu_delete_user():
 
 def register_user():
     local_ip = get_local_ip()
-    print(f"Register current IP ({local_ip}) ? (y/n)")
+    print(f"Register current IP ({local_ip})? (y/n)")
     if input().strip().lower() == "y":
         user_manager.register_ip(local_ip)
 

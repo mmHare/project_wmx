@@ -1,12 +1,11 @@
 
 CREATE TABLE IF NOT EXISTS configuration (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    key_name TEXT NOT NULL,
+    key_name TEXT UNIQUE NOT NULL,
     value_str TEXT,
     value_int INTEGER
 );
 
--- Table: users
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     "name" TEXT,
@@ -16,4 +15,12 @@ CREATE TABLE IF NOT EXISTS users (
     "password" TEXT,
     user_role INTEGER,
     ip_address TEXT
+);
+
+CREATE TABLE IF NOT EXISTS dict_tables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    table_name TEXT,
+    description TEXT,
+    visibility INTEGER,
+    created_by INTEGER
 );
