@@ -1,10 +1,11 @@
 """List of program menu screens"""
 
+from src.globals.help_functions import *
 from src.menu_functions import show_menu
 from src.config.config_functions import *
 from src.database.db_functions import *
 from src.users.users_functions import *
-from src.globals.help_functions import *
+from src.dict_tables.dict_tab_functions import *
 from src.minigames import *
 
 
@@ -108,9 +109,9 @@ def user_management_screen():
 def dictionary_tables_screen():
     """Method to display dictionary tables."""
     options = [
-        # ("View all tables", view_all_tables),
-        # ("Add new table", add_new_table),
-        # ("Delete table", delete_table)
+        ("List tables", menu_list_tables),
+        ("Add new table", menu_new_table),
+        ("Delete table", menu_delete_table)
     ]
 
     show_menu("Dictionary tables", options)

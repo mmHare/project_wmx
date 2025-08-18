@@ -7,6 +7,7 @@ from psycopg2.extras import RealDictCursor
 import sqlite3
 
 from src.globals import *
+from src.globals.help_functions import decrypt_data
 from .sql_helper import query_select, query_modify
 from src.config.class_config import get_config_manager
 
@@ -147,7 +148,12 @@ class ConnectionManager:
         sql_text = "SELECT value_str FROM configuration WHERE key_name = :key_in;"
         params = {"key_in": "db_version"}
 
-        db_ver = self.exec_sql_select(sql_text, params, fetch_one=True)
+        try:
+            db_ver = self.exec_sql_select(sql_text, params, fetch_one=True)
+        except Exception as e:
+            print("Error checking database version:", e)
+            return False
+
         if db_ver:
             db_ver = db_ver[0]
         else:
@@ -163,18 +169,65 @@ class ConnectionManager:
                 return self.update_db()
             return False
 
-    def exec_sql_select(self, sql_text: str, params: dict = None, fetch_one: bool = False, dict_result: bool = False):
+    def exec_sql_table_exists(self, table_name: str) -> bool:
+        table_name = table_name.lower()
+        if self.db_type == DbType.POSTGRES:
+            sql_text = f"SELECT to_regclass('public.{table_name}') IS NOT NULL;"
+        elif self.db_type == DbType.SQLITE:
+            sql_text = f"SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='{table_name}')"
+        else:
+            raise TypeError("Incorrect database type")
+
+        result = self.exec_sql_select(sql_text, fetch_one=True)
+        return bool(result[0])
+
+    def exec_sql_create_table(self, table_name: str, columns: list) -> bool:
+        """Creates table from given name and column names (right now only str handled), PK column 'id' is added automatically.
+            Returns True if Table was created.
+        """
+        if self.db_type not in [DbType.POSTGRES, DbType.SQLITE]:
+            raise TypeError("Incorrect database type")
+
+        # preparing data
+        tab_name = table_name.lower()
+        if self.db_type == DbType.POSTGRES:  # postgres format
+            id_column = "id serial4 NOT NULL"
+            pk_line = f"CONSTRAINT {tab_name}_pk PRIMARY KEY(id)"
+            tab_name = "public." + tab_name
+            type_name = "varchar"
+        elif self.db_type == DbType.SQLITE:
+            id_column = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+            type_name = "TEXT"
+
+        reserved_sql_names = ["user", "name", "password",
+                              "order", "group", "key", "value", "date"]
+        column_names = [
+            f"'{col}'" if col in reserved_sql_names else col for col in set(columns) if col != "id"]
+
+        column_lines = [id_column] + \
+            [f"{col} {type_name}" for col in column_names]
+        if self.db_type == DbType.POSTGRES:
+            column_lines.append(pk_line)
+
+        sql_text = f"CREATE TABLE {tab_name} ( " + \
+            ', '.join(column_lines) + ");"
+
+        cursor = self.db_cursor
         try:
-            return query_select(self.connection, self.db_type, sql_text, params, fetch_one, dict_result)
-        except Exception as e:
-            print(f"Error executing SELECT query: {e}")
+            cursor.execute(sql_text)
+            self.connection.commit()
+        except:
+            self.connection.rollback()
+            raise
+
+        return self.exec_sql_table_exists(table_name)
+
+    def exec_sql_select(self, sql_text: str, params: dict = None, fetch_one: bool = False, dict_result: bool = False):
+        return query_select(self.connection, self.db_type, sql_text, params, fetch_one, dict_result)
 
     def exec_sql_modify(self, mode: QueryMode, sql_text: str, params: dict = None, key_fields: tuple = None):
-        try:
-            return query_modify(self.connection, self.db_type,
-                                mode, sql_text, params, key_fields)
-        except Exception as e:
-            print(f"Error executing query: {e}")
+        return query_modify(self.connection, self.db_type,
+                            mode, sql_text, params, key_fields)
 
 
 # Instance

@@ -47,10 +47,7 @@ def change_db_type():
 
 
 def check_db_version():
-    try:
-        connection_manager.check_db_version()
-    except Exception as e:
-        print("Error while checking database version:", e)
+    connection_manager.check_db_version()
 
 
 def check_db_connection():
@@ -127,3 +124,15 @@ def query_delete(sql_text: str, params: dict = None):
 
 def query_upsert(sql_text: str, params: dict = None, key_fields: tuple = None):
     return connection_manager.exec_sql_modify(QueryMode.UPSERT, sql_text, params, key_fields)
+
+
+def query_table_exists(table_name: str) -> bool:
+    """Returns True if table with given name exists in the database, False otherwise"""
+    return connection_manager.exec_sql_table_exists(table_name)
+
+
+def query_create_table(table_name: str, columns: list):
+    """Creates table from given name and column names, PK column 'id' is added automatically.
+        Returns True if Table was created.
+    """
+    return connection_manager.exec_sql_create_table(table_name, columns)
