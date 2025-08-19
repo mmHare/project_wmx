@@ -1,7 +1,6 @@
 """Functions regarding dictionary tables"""
 
 from src.globals.help_functions import clear_screen
-from src.globals.glob_constants import *
 from .class_dictionary_table import *
 from src.users.class_user_manager import get_user_manager
 
@@ -36,18 +35,20 @@ def list_dictionary_tables(table_list: list[DictionaryTable] = None):
 
 
 def menu_list_tables():
+    def filter_tables(tab: DictionaryTable):
+        return tab.is_public or tab.created_by == user_manager.logged_user.id
+
     table_list = dict_tab_manager.get_table_list()
 
-    usr_id = user_manager.logged_user.id
-    tables_to_show = [table for table in table_list if (
-        table.is_public) or (table.created_by == usr_id)]
-
-    # ^- zamiast tego, wyciągnąć tabele filtrem
-
-    if len(tables_to_show) == 0:
+    if not table_list:
         print("No tables to show.")
     else:
-        list_dictionary_tables(table_list)
+        tables_to_show = list(filter(filter_tables, table_list))
+
+        if len(tables_to_show) == 0:
+            print("No tables to show.")
+        else:
+            list_dictionary_tables(table_list)
 
     print()
 
@@ -65,10 +66,12 @@ def menu_new_table():
                 "Table name cannot be empty. Input 'q' to quit or press ENTER to continue.")
             if input() == 'q':
                 return
-        elif not all(ch.isalpha() or ch in ["_"] for ch in user_input):
-            print("Only letters and underscores are eligible.")
-        elif user_input[0] == "_":
-            print("Name cannot start with underscore.")
+        elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
+            print("Only letters, digits and underscores are eligible.")
+            input("Press ENTER to continue...")
+        elif (user_input[0].isdigit()) or (user_input[0] == "_"):
+            print("Name must start with a letter.")
+            input("Press ENTER to continue...")
         else:
             tab_name = user_input
             break
@@ -80,10 +83,12 @@ def menu_new_table():
         user_input = input(f"{i}. ")
         if user_input == "":
             break
-        elif not all(ch.isalpha() or ch in ["_"] for ch in user_input):
-            print("Only letters and underscores are eligible.")
-        elif user_input[0] == "_":
-            print("Name cannot start with underscore.")
+        elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
+            print("Only letters, digits and underscores are eligible.")
+            input("Press ENTER to continue...")
+        elif (user_input[0].isdigit()) or (user_input[0] == "_"):
+            print("Name must start with a letter.")
+            input("Press ENTER to continue...")
         else:
             columns.append(user_input)
             i += 1
@@ -97,9 +102,9 @@ def menu_new_table():
     print()
     while True:
         user_input = input(
-            "Do you want this table to be 'private' or 'public' (visible to other users)?\n")
-        if user_input not in [ACC_PRIVATE, ACC_PUBLIC]:
-            print(F"Please enter {ACC_PRIVATE} or {ACC_PUBLIC}")
+            "Do you want this table to be 'private' or 'public' (visible to other users)?\n").lower()
+        if user_input not in ['private', 'public']:
+            print("Please enter 'private' or 'public'")
         else:
             table.visibility = user_input
             break
@@ -112,4 +117,25 @@ def menu_new_table():
 
 
 def menu_delete_table():
-    pass
+    clear_screen()
+    print("-- Delete table --")
+
+    while True:
+        user_input = input("Name of the table to delete:\n")
+        if user_input == "":
+            print(
+                "Table name cannot be empty. Input 'q' to quit or press ENTER to continue.")
+            if input() == 'q':
+                return
+        elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
+            print("Only letters, digits and underscores are eligible.")
+            input("Press ENTER to continue...")
+        elif (user_input[0].isdigit()) or (user_input[0] == "_"):
+            print("Name must start with a letter.")
+            input("Press ENTER to continue...")
+        else:
+            if input(f"Do you want to delete table {user_input}? ('y' to confirm)\n") == 'y':
+                table = DictionaryTable(user_input)
+                if dict_tab_manager.delete_table(table):
+                    print("Table deleted successfully.")
+            return

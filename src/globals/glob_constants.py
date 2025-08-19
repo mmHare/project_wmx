@@ -30,8 +30,3 @@ CONF_DB_C_PASS = "password"
 # encryption
 HASH_SALT = 'p64q'
 ENCRYPT_KEY = b'aFaHN8BgX7-5nWW_tvJRhiR98D9pxJ-DzpdHKl99szY='
-
-
-# access
-ACC_PRIVATE = "private"
-ACC_PUBLIC = "public"

@@ -133,6 +133,7 @@ class ConnectionManager:
             print(f"Error setting database version: {e}")
             return False
         print("Database updated successfully.")
+        input("Press ENTER to continue...")
         return True
 
     def set_db_version(self, version: str):
@@ -199,17 +200,20 @@ class ConnectionManager:
             id_column = "id INTEGER PRIMARY KEY AUTOINCREMENT"
             type_name = "TEXT"
 
-        reserved_sql_names = ["user", "name", "password",
-                              "order", "group", "key", "value", "date"]
-        column_names = [
-            f"'{col}'" if col in reserved_sql_names else col for col in set(columns) if col != "id"]
+        # reserved_sql_names = ["user", "name", "password",
+        #                       "order", "group", "key", "value", "date"]
+        # columns = set(columns) - {"id"}
+        # column_names = [
+        #     f"'{col}'" if col in reserved_sql_names else col for col in columns]
+
+        column_names = list(set(columns) - {"id"})  # delete id if user added
 
         column_lines = [id_column] + \
             [f"{col} {type_name}" for col in column_names]
         if self.db_type == DbType.POSTGRES:
             column_lines.append(pk_line)
 
-        sql_text = f"CREATE TABLE {tab_name} ( " + \
+        sql_text = f"CREATE TABLE {tab_name} (" + \
             ', '.join(column_lines) + ");"
 
         cursor = self.db_cursor
@@ -226,8 +230,7 @@ class ConnectionManager:
         return query_select(self.connection, self.db_type, sql_text, params, fetch_one, dict_result)
 
     def exec_sql_modify(self, mode: QueryMode, sql_text: str, params: dict = None, key_fields: tuple = None):
-        return query_modify(self.connection, self.db_type,
-                            mode, sql_text, params, key_fields)
+        return query_modify(self.connection, self.db_type, mode, sql_text, params, key_fields)
 
 
 # Instance

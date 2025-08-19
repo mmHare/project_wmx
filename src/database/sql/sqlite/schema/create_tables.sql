@@ -23,4 +23,5 @@ CREATE TABLE IF NOT EXISTS dict_tables (
     description TEXT,
     visibility INTEGER,
     created_by INTEGER
+    table_name_ref TEXT,
 );

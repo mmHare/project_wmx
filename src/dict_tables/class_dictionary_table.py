@@ -2,7 +2,7 @@
 
 from src.users.class_user import User
 from src.database.db_functions import *
-from src.globals.glob_dicts import *
+# from src.globals.glob_dicts import *
 from src.users.class_user_manager import get_user_manager
 
 
@@ -18,20 +18,48 @@ class TableItem:
 
 class DictionaryTable:
     def __init__(self, table_name="", columns=["id"]):
-        self.table_name = table_name
+        self.id = 0
+        self._table_name = table_name
         self.description = ""
-        self.visibility = "private"
+        self._visibility = VisAccess.PRIVATE  # private/public
         self.created_by = None  # type: User
         self.columns = columns
         self.items = []  # type: list[TableItem]
 
     @property
-    def visibility_int(self):
-        return VISIBILITY_ACCESS[self.visibility]
+    def visibility(self) -> VisAccess:
+        return self._visibility
 
     @property
-    def is_public(self):
-        return self.visibility_int == ACC_PRIVATE
+    def visibility_int(self):
+        return VisAccess.to_int(self._visibility)
+
+    @visibility.setter
+    def visibility(self, value):
+        if isinstance(value, str):
+            self._visibility = VisAccess.from_str(value)
+        elif isinstance(value, int):
+            self._visibility = VisAccess(value)
+        elif isinstance(value, VisAccess):
+            self._visibility = value
+        else:
+            raise ValueError("visibility must be str, int or VisAccess")
+
+    @property
+    def table_name(self):
+        return self._table_name.lower()
+
+    @property
+    def table_name_ref(self):
+        return "ut_" + self._table_name.lower().removeprefix("ut_")
+
+    @table_name.setter
+    def table_name(self, value: str):
+        self._table_name = value.lower().removeprefix("ut_")
+
+    @property
+    def is_public(self) -> bool:
+        return self._visibility == VisAccess.PUBLIC
 
 
 class DictionaryTableManager:
@@ -39,64 +67,63 @@ class DictionaryTableManager:
         # self.dictionary_table = DictionaryTable()
         pass
 
-    def get_visibility_from_int(self, visb: int):
-        # temporary, need to find better way
-        if visb == 1:
-            return ACC_PRIVATE
-        else:
-            return ACC_PUBLIC
-
-    def get_table_list(self):
+    def get_table_list(self) -> list[DictionaryTable]:
+        tables = []
         try:
             sql_text = "SELECT * FROM dict_tables;"
             result = query_select(sql_text, dict_result=True)
-            tables = []
+
             for res in result:
                 table = DictionaryTable(res["table_name"])
+                table.id = res["id"]
                 table.description = res["description"]
-                table.visibility = self.get_visibility_from_int(
-                    res["visibility"])
+                table.visibility = res["visibility"]
                 table.created_by = res["created_by"]
                 tables.append(table)
-
         except Exception as e:
             print("Error getting list of tables:", e)
-            return None
         return tables
 
-    def create_table(self, table: DictionaryTable):
-        tab_name = table.table_name.lower()
+    def check_table_exist(self, table: DictionaryTable) -> int:
         user_id = user_manager.logged_user.id
-        try:
-            if table.table_name == "":
-                raise Exception("No table name.")
-            # check if table is recorded
-            sql_text = "SELECT id, created_by, visibility FROM dict_tables WHERE table_name = :table_name"
-            params = {"table_name": tab_name}
-            result = query_select(sql_text, params, dict_result=True)
-            if result:
-                # test and correct (problem probably with dict result)
-                if (result["created_by"] != user_id) and (result["visibility"] == "private"):
-                    raise Exception(
-                        "Another user created table with the same name.")
-                else:
-                    raise Exception(
-                        f"Table {tab_name.upper()} already exists.")
+        result = 0  # TODO: work out some other solution
+        if table.table_name == "":
+            raise Exception("No table name.")
+        # check if table is recorded
+        sql_text = "SELECT id, created_by, visibility FROM dict_tables WHERE table_name_ref = :table_name_ref;"
+        params = {"table_name_ref": table.table_name_ref}
+        query_res = query_select_one(sql_text, params, dict_result=True)
+        if query_res:
+            if (query_res["created_by"] != user_id) and (query_res["visibility"] == "private"):
+                result += 2  # created by another user
+            result += 1  # exists
 
-            # check if table exists even if it is not recorded in dict_tables
-            if query_table_exists(tab_name):
-                raise Exception(
-                    f"Table {tab_name.upper()} already exists. Please contact database administrator for further info.")
+        # check if table exists even if it is not recorded in dict_tables
+        if query_table_exists(table.table_name_ref):
+            result += 4
+        return result
+
+    def create_table(self, table: DictionaryTable):
+        try:
+            result = self.check_table_exist(table)
+            if result in [2, 6]:
+                print(
+                    f"Table '{table.table_name}' was already created by another user.")
+                return False
+            elif result in [1, 5]:
+                print(f"Table '{table.table_name}' already exists.")
+                return False
 
             # create table
-            if query_create_table(table.table_name, table.columns):
+            if query_create_table(table.table_name_ref, table.columns):
                 # insert record to dict_tables
-                sql_text = "INSERT INTO dict_tables (table_name, description, visibility, created_by) VALUES (:table_name, :description, :visibility, :created_by)"
+                sql_text = "INSERT INTO dict_tables (table_name, description, visibility, created_by, table_name_ref) VALUES (:table_name, :description, :visibility, :created_by, :table_name_ref);"
                 params = {
                     "table_name": table.table_name,
                     "description": table.description,
-                    "visibility": table.visibility_int,
-                    "created_by": user_id
+                    "visibility": int(table.visibility),
+                    "created_by": user_manager.logged_user.id,
+                    "table_name_ref": table.table_name_ref
                 }
                 query_insert(sql_text, params)
 
@@ -106,8 +133,32 @@ class DictionaryTableManager:
         return True
 
     def delete_table(self, table: DictionaryTable):
-        # Code to delete the dictionary table from the database
-        pass
+        try:
+            user_id = user_manager.logged_user.id
+            sql_text = "SELECT created_by, visibility FROM dict_tables WHERE table_name_ref = :table_name_ref;"
+            params = {"table_name_ref": table.table_name_ref}
+            query_res = query_select_one(sql_text, params, dict_result=True)
+            if not query_res:
+                raise Exception(f"Table {table.table_name} does not exist.")
+            elif (query_res["created_by"] != user_id):
+                raise Exception("Only owners can delete their tables.")
+
+            if self.check_table_exist(table) > 4:
+                sql_text = f"DROP TABLE {table.table_name_ref};"
+                connection_manager.exec_sql_modify(QueryMode.DROP, sql_text)
+
+                if self.check_table_exist(table) > 4:
+                    raise Exception("Could not drop table.")
+
+            sql_text = "DELETE FROM dict_tables WHERE table_name_ref = :table_name_ref;"
+            params = {"table_name_ref": table.table_name_ref}
+            query_delete(sql_text, params)
+            if self.check_table_exist(table):
+                raise Exception("Could not delete table record.")
+        except Exception as e:
+            print("Error deleting table:", e)
+            return False
+        return True
 
     def load_table(self):
         # Code to load the dictionary table from the database
