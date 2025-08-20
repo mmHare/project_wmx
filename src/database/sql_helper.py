@@ -25,6 +25,9 @@ def prepare_sql_text(sql_text: str, params: dict, db_type: DbType) -> str:
                 raise ValueError(f"Missing parameter: {name}")
             return f"%({name})s"
         sql_text = re.sub(r":(\w+)", replacer, sql_text)
+
+    if not sql_text.endswith(";"):
+        sql_text += ";"
     return sql_text
 
 

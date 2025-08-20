@@ -69,13 +69,14 @@ def menu_new_table():
                 return
         elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
             print("Only letters, digits and underscores are eligible.")
-            input("Press ENTER to continue...")
         elif (user_input[0].isdigit()) or (user_input[0] == "_"):
             print("Name must start with a letter.")
-            input("Press ENTER to continue...")
+        elif len(user_input) > 25:
+            print("Name cannot exceed 25 characters.")
         else:
             tab_name = user_input
             break
+        input("Press ENTER to continue...")
 
     print()
     print("Enter column names. Leave empty when you're done and want to continue.")
@@ -83,20 +84,21 @@ def menu_new_table():
     while True:
         user_input = input(f"{i}. ")
         if user_input == "":
-            if len(columns) == 0:
-                print("Table needs to have at least one column.")
-                input("Press ENTER to continue...")
+            if not (0 < len(columns) < 5):
+                print("Table needs to have 1-5 columns.")
             else:
                 break
         elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
             print("Only letters, digits and underscores are eligible.")
-            input("Press ENTER to continue...")
         elif (user_input[0].isdigit()) or (user_input[0] == "_"):
             print("Name must start with a letter.")
-            input("Press ENTER to continue...")
+        elif len(user_input) > 25:
+            print("Name cannot exceed 25 characters.")
         else:
             columns.append(user_input)
             i += 1
+            continue
+        input("Press ENTER to continue...")
 
     table = DictionaryTable(tab_name, list(set(columns)))
 
@@ -153,17 +155,14 @@ def menu_select_table():
     while True:
         print("Enter name of the table to show its options. (0 to quit)")
         user_input = input().strip()
-        if user_input == '0':
+        if user_input == "":
+            continue
+        elif user_input == '0':
             break
         elif not all(ch.isalnum() or ch in ["_"] for ch in user_input) or (user_input[0].isdigit()) or (user_input[0] == "_"):
             print("Invalid name.")
-            input("Press ENTER to continue...")
-        elif dict_tab_manager.check_table_exist(DictionaryTable(user_input)) in [2, 6]:
+        elif not dict_tab_manager.check_table_status(DictionaryTable(user_input)) == TableCheckResult.USABLE:
             print("This table is not available.")
-            input("Press ENTER to continue...")
         else:
-            table = DictionaryTable(user_input)
-            table_options(table)
-
-            input("Press ENTER to continue...")
+            table_options(user_input)
             return

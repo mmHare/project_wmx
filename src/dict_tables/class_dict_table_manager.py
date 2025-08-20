@@ -115,7 +115,7 @@ class DictionaryTableManager:
             if tab_check in [TableCheckResult.ORPHAN]:
                 sql_text = f"DROP TABLE {table.table_name_ref};"
                 connection_manager.exec_sql_modify(QueryMode.DROP, sql_text)
-                if self.check_table_visibility(table) in [TableCheckResult.ORPHAN]:
+                if self.check_table_status(table) in [TableCheckResult.ORPHAN]:
                     print("Could not drop table.")
                     result = False
         except Exception as e:
@@ -127,7 +127,7 @@ class DictionaryTableManager:
         # Code to load the dictionary table from the database
         table = DictionaryTable(table_name)
         try:
-            tab_check = self.check_table_status(table_name)
+            tab_check = self.check_table_status(table)
             if not (tab_check == TableCheckResult.USABLE):
                 print("Cannot fetch table data.")
                 # TODO: rest of checks and msg prints
@@ -141,9 +141,13 @@ class DictionaryTableManager:
                 table.owner_id = record["owner_id"]
                 table.visibility = record["visibility"]
 
+                # column names
+                table.columns = connection_manager.sql_get_table_column_names(
+                    table.table_name_ref)
+
+                # table items
                 sql_text = f"SELECT * FROM {table.table_name_ref};"
-                tab_items = query_select(sql_text)
-                table.columns = tab_items.keys
+                tab_items = query_select(sql_text, dict_result=True)
                 table.items = tab_items
 
         except Exception as e:
@@ -154,14 +158,44 @@ class DictionaryTableManager:
         # Code to save the dictionary table to the database
         pass
 
-    def add_item(self, table: DictionaryTable, item: TableItem):
-        pass
+    def add_item(self, table: DictionaryTable, item: dict):
+        try:
 
-    def update_item(self, table: DictionaryTable, item: TableItem):
-        pass
+            par_keys = [f":{key}" for key in item.keys()]
 
-    def delete_item(self, table: DictionaryTable, item: TableItem):
-        pass
+            sql_text = f"INSERT INTO {table.table_name_ref} ({','.join(item.keys())}) VALUES ({','.join(par_keys)});"
+            params = item
+            sql_result = query_insert(sql_text, params)
+            return sql_result > 0
+        except Exception as e:
+            print("Error while inserting table item:", e)
+            return False
+
+    def update_item(self, table: DictionaryTable, item: dict):
+        try:
+            if item.get("id") > 0:
+                set_values = ",".join(
+                    [f"{key}={value}" for key, value in item.items()])
+                sql_text = F"UPDATE {table.table_name_ref} SET {set_values} WHERE id = {item['id']};"
+                query_update(sql_text)
+            else:
+                raise ValueError("Incorrect ID value.")
+        except Exception as e:
+            print("Error while deleting table item:", e)
+            return False
+        return True
+
+    def delete_item_by_id(self, table: DictionaryTable, item_id: int):
+        try:
+            if item_id > 0:
+                sql_text = F"DELETE FROM {table.table_name_ref} WHERE id = {item_id};"
+                query_delete(sql_text)
+            else:
+                raise ValueError("Incorrect ID value.")
+        except Exception as e:
+            print("Error while deleting table item:", e)
+            return False
+        return True
 
 
 # Instance

@@ -226,6 +226,11 @@ class ConnectionManager:
 
         return self.exec_sql_table_exists(table_name)
 
+    def sql_get_table_column_names(self, table_name):
+        cursor = self.connection.cursor()
+        cursor.execute(f"SELECT * FROM {table_name} LIMIT 0;")
+        return [desc[0] for desc in cursor.description]
+
     def exec_sql_select(self, sql_text: str, params: dict = None, fetch_one: bool = False, dict_result: bool = False):
         return query_select(self.connection, self.db_type, sql_text, params, fetch_one, dict_result)
 
