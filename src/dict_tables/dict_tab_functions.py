@@ -1,8 +1,9 @@
 """Functions regarding dictionary tables"""
 
 from src.globals.help_functions import clear_screen
-from .class_dictionary_table import *
+from .class_dict_table_manager import *
 from src.users.class_user_manager import get_user_manager
+from .dict_tab_options import table_options
 
 dict_tab_manager = get_dict_tab_manager()
 user_manager = get_user_manager()
@@ -28,7 +29,7 @@ def list_dictionary_tables(table_list: list[DictionaryTable] = None):
     i = 1
     usr_id = user_manager.logged_user.id
     for table in table_list:
-        if (table.is_public) or (table.created_by == usr_id):
+        if (table.is_public) or (table.owner_id == usr_id):
             print(f"{i}. {table.table_name}")
             i += 1
     return
@@ -36,7 +37,7 @@ def list_dictionary_tables(table_list: list[DictionaryTable] = None):
 
 def menu_list_tables():
     def filter_tables(tab: DictionaryTable):
-        return tab.is_public or tab.created_by == user_manager.logged_user.id
+        return tab.is_public or tab.owner_id == user_manager.logged_user.id
 
     table_list = dict_tab_manager.get_table_list()
 
@@ -82,7 +83,11 @@ def menu_new_table():
     while True:
         user_input = input(f"{i}. ")
         if user_input == "":
-            break
+            if len(columns) == 0:
+                print("Table needs to have at least one column.")
+                input("Press ENTER to continue...")
+            else:
+                break
         elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
             print("Only letters, digits and underscores are eligible.")
             input("Press ENTER to continue...")
@@ -96,7 +101,7 @@ def menu_new_table():
     table = DictionaryTable(tab_name, list(set(columns)))
 
     print()
-    if input("Do you want to add description to the table? (y/n) "):
+    if input("Do you want to add description to the table? (y/n) ") == 'y':
         table.description = input("Description: ")
 
     print()
@@ -138,4 +143,27 @@ def menu_delete_table():
                 table = DictionaryTable(user_input)
                 if dict_tab_manager.delete_table(table):
                     print("Table deleted successfully.")
+            return
+
+
+def menu_select_table():
+    clear_screen()
+    print("-- Select table --")
+
+    while True:
+        print("Enter name of the table to show its options. (0 to quit)")
+        user_input = input().strip()
+        if user_input == '0':
+            break
+        elif not all(ch.isalnum() or ch in ["_"] for ch in user_input) or (user_input[0].isdigit()) or (user_input[0] == "_"):
+            print("Invalid name.")
+            input("Press ENTER to continue...")
+        elif dict_tab_manager.check_table_exist(DictionaryTable(user_input)) in [2, 6]:
+            print("This table is not available.")
+            input("Press ENTER to continue...")
+        else:
+            table = DictionaryTable(user_input)
+            table_options(table)
+
+            input("Press ENTER to continue...")
             return

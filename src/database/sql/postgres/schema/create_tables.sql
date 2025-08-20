@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public.dict_tables(
 	table_name varchar NOT NULL,
 	description varchar NULL,
 	visibility int4 NULL,
-	created_by int4 NULL,
+	owner_id int4 NULL,
 	table_name_ref varchar NULL,
 	CONSTRAINT dict_tables_pk PRIMARY KEY (id)
 );

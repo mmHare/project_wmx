@@ -22,6 +22,6 @@ CREATE TABLE IF NOT EXISTS dict_tables (
     table_name TEXT,
     description TEXT,
     visibility INTEGER,
-    created_by INTEGER
+    owner_id INTEGER
     table_name_ref TEXT,
 );
