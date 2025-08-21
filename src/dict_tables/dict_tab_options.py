@@ -1,7 +1,8 @@
 """Menu UI regarding Dict Table"""
 
+from tkinter import Tk, filedialog
+import csv
 
-from functools import partial
 from src.dict_tables.class_dict_table_manager import *
 from src.menu_functions import show_menu
 
@@ -35,37 +36,18 @@ def table_options(table_name: str):
         table_delete_item(table)
         table = dict_tab_manager.load_table(table_name)
 
-    # while True:
-    #     clear_screen()
-    #     print("== DICTIONARY TABLES ==")
-    #     print("1. Details")
-    #     print("2. List items")
-    #     print("3. Add new item")
-    #     print("4. Delete item")
-    #     print("0. Exit")
-    #     user_input = input("Select option: ")
-
-    #     if user_input == '0':
-    #         break
-    #     elif user_input not in ['1', '2', '3', '4']:
-    #         print("Wrong option.")
-    #     elif user_input == '1':
-    #         table_details(table)
-    #     elif user_input == '2':
-    #         table_list_items(table)
-    #     elif user_input == '3':
-    #         table_add_item(table)
-    #     elif user_input == '4':
-    #         table_delete_item(table)
-
-    # input("Press ENTER to continue...")
+    def menu_export_table():
+        nonlocal table
+        table = dict_tab_manager.load_table(table_name)
+        export_table(table)
 
     print(f"== {table.table_name.upper()} ==")
     options = [
         ("Details", show_tab_details),
         ("List items", show_tab_list_items),
         ("Add new item", show_tab_add_item),
-        ("Delete item", show_delete_item)
+        ("Delete item", show_delete_item),
+        ("Export to CSV", menu_export_table)
     ]
 
     show_menu("Dictionary tables", options)
@@ -94,7 +76,7 @@ def table_list_items(table: DictionaryTable):
         item_line = ' | '.join([str(item[col]) for col in table.columns])
         item_lines.append(item_line)
 
-    print(f"{table.table_name.upper()}: list of items")
+    print(f"{table.table_name.upper()}:")
     max_line = len(max(item_lines))
     print("_"*max_line)
     column_line = ' | '.join(table.columns)
@@ -129,3 +111,39 @@ def table_delete_item(table: DictionaryTable):
         print(f"Error: Multiple items found.")
     else:
         dict_tab_manager.delete_item_by_id(table, item_id)
+
+
+def export_table(table: DictionaryTable):
+    print("-- Export table to CSV --")
+
+    print("Please select path to save the file:")
+
+    try:
+        root = Tk()
+        root.withdraw()  # hide main window
+        root.update()
+        root.attributes("-topmost", True)  # Force on top
+        root.focus_force()
+
+        path = filedialog.asksaveasfilename(
+            parent=root,
+            initialfile=table.table_name,
+            title="Save file as...",
+            defaultextension=".csv",
+            filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+        )
+        root.destroy()
+
+        if path:
+            with open(path, "w", newline='') as csvfile:
+                table_writer = csv.writer(csvfile, delimiter=',')
+                table_writer.writerow(table.columns)
+                table_writer.writerows([[value for value in item.values()]
+                                        for item in table.items])
+            print("Table exported successfully.")
+        else:
+            print("No path selected.")
+    except Exception as e:
+        print("Error while exporting to file:", e)
+
+    return

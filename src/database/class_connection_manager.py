@@ -200,12 +200,6 @@ class ConnectionManager:
             id_column = "id INTEGER PRIMARY KEY AUTOINCREMENT"
             type_name = "TEXT"
 
-        # reserved_sql_names = ["user", "name", "password",
-        #                       "order", "group", "key", "value", "date"]
-        # columns = set(columns) - {"id"}
-        # column_names = [
-        #     f"'{col}'" if col in reserved_sql_names else col for col in columns]
-
         column_names = list(set(columns) - {"id"})  # delete id if user added
 
         column_lines = [id_column] + \

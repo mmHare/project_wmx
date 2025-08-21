@@ -112,7 +112,8 @@ def dictionary_tables_screen():
         ("List tables", menu_list_tables),
         ("Add new table", menu_new_table),
         ("Delete table", menu_delete_table),
-        ("Select table", menu_select_table)
+        ("Select table", menu_select_table),
+        ("Import table", menu_import_table)
     ]
 
     show_menu("Dictionary tables", options)

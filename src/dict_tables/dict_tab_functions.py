@@ -1,9 +1,13 @@
 """Functions regarding dictionary tables"""
 
+from tkinter import Tk, filedialog
+import csv
+
 from src.globals.help_functions import clear_screen
 from .class_dict_table_manager import *
 from src.users.class_user_manager import get_user_manager
-from .dict_tab_options import table_options
+from .dict_tab_options import table_list_items, table_options
+
 
 dict_tab_manager = get_dict_tab_manager()
 user_manager = get_user_manager()
@@ -124,22 +128,22 @@ def menu_new_table():
 
 
 def menu_delete_table():
-    clear_screen()
     print("-- Delete table --")
 
     while True:
-        user_input = input("Name of the table to delete:\n")
+        print("Name of the table to delete.\n('-q' to quit, '-l' to list tables)")
+        user_input = input()
         if user_input == "":
-            print(
-                "Table name cannot be empty. Input 'q' to quit or press ENTER to continue.")
-            if input() == 'q':
-                return
+            print("Table name cannot be empty.")
+        elif user_input == "-q":
+            break
+        elif user_input == "-l":
+            menu_list_tables()
+            continue
         elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
             print("Only letters, digits and underscores are eligible.")
-            input("Press ENTER to continue...")
         elif (user_input[0].isdigit()) or (user_input[0] == "_"):
             print("Name must start with a letter.")
-            input("Press ENTER to continue...")
         else:
             if input(f"Do you want to delete table {user_input}? ('y' to confirm)\n") == 'y':
                 table = DictionaryTable(user_input)
@@ -149,15 +153,17 @@ def menu_delete_table():
 
 
 def menu_select_table():
-    clear_screen()
     print("-- Select table --")
 
     while True:
-        print("Enter name of the table to show its options. (0 to quit)")
-        user_input = input().strip()
+        print("Enter name of the table to show its options.\n('-q' to quit, '-l' to list tables)")
+        user_input = input()
         if user_input == "":
             continue
-        elif user_input == '0':
+        elif user_input == "-l":
+            menu_list_tables()
+            continue
+        elif user_input == "-q":
             break
         elif not all(ch.isalnum() or ch in ["_"] for ch in user_input) or (user_input[0].isdigit()) or (user_input[0] == "_"):
             print("Invalid name.")
@@ -166,3 +172,115 @@ def menu_select_table():
         else:
             table_options(user_input)
             return
+
+
+def menu_import_table():
+    print("-- Import table from CSV --")
+    table = DictionaryTable()
+    columns = []
+    read_headers = True
+
+    while True:
+        user_input = input(
+            "Enter table name\n('-q' to quit, '-l' to list tables)\n")
+        if user_input == "":
+            continue
+        elif user_input == "-l":
+            menu_list_tables()
+            continue
+        elif user_input == "-q":
+            return
+        elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
+            print("Only letters, digits and underscores are eligible.")
+        elif (user_input[0].isdigit()) or (user_input[0] == "_"):
+            print("Name must start with a letter.")
+        elif len(user_input) > 25:
+            print("Name cannot exceed 25 characters.")
+        else:
+            if dict_tab_manager.check_table_status(DictionaryTable(user_input)) == TableCheckResult.MISSING:
+                table.table_name = user_input
+                break
+            else:
+                print("This name is not available.")
+        print()
+
+    read_headers = input("Does file contain column headers? (y/n)\n") == 'y'
+
+    if not read_headers:
+        print("Enter column names. Leave empty when you're done and want to continue.")
+        i = 1
+        while True:
+            user_input = input(f"{i}. ")
+            if user_input == "":
+                if not (0 < len(columns) < 5):
+                    print("Table needs to have 1-5 columns.")
+                else:
+                    break
+            elif not all(ch.isalnum() or ch in ["_"] for ch in user_input):
+                print("Only letters, digits and underscores are eligible.")
+            elif (user_input[0].isdigit()) or (user_input[0] == "_"):
+                print("Name must start with a letter.")
+            elif len(user_input) > 25:
+                print("Name cannot exceed 25 characters.")
+            else:
+                columns.append(user_input)
+                i += 1
+                continue
+            input("Press ENTER to continue...")
+
+            table.columns = list(set(columns))
+
+    try:
+        root = Tk()
+        root.withdraw()  # hide main window
+        root.update()
+        root.attributes("-topmost", True)  # Force on top
+        root.focus_force()
+
+        path = filedialog.askopenfilename(parent=root,
+                                          defaultextension=".csv",
+                                          filetypes=[
+                                              ("CSV Files", "*.csv"), ("All Files", "*.*")]
+                                          )
+
+        root.destroy()
+        if path:
+            with open(path, newline='') as csvfile:
+                table_reader = csv.reader(csvfile, delimiter=',')
+                read_lines = [row for row in table_reader]
+
+                if read_headers:
+                    table.columns = read_lines.pop(0)
+
+                for line in read_lines:
+                    table.items.append(dict(zip(table.columns, line)))
+
+                clear_screen()
+
+                print("Imported data:")
+
+                table_list_items(table)
+
+                if input("Do you want to import this table? ('y' to confirm)\n") == "y":
+                    print()
+                    if input("Do you want to add description to the table? (y/n) ") == 'y':
+                        table.description = input("Description: ")
+
+                    print()
+                    while True:
+                        user_input = input(
+                            "Do you want this table to be 'private' or 'public' (visible to other users)?\n").lower()
+                        if user_input not in ['private', 'public']:
+                            print("Please enter 'private' or 'public'")
+                        else:
+                            table.visibility = user_input
+                            break
+                    dict_tab_manager.create_table(table)
+
+                    print("Table imported successfully.")
+                else:
+                    print("Import aborted.")
+        else:
+            print("No file selected")
+    except Exception as e:
+        print("Error while importing file:", e)
