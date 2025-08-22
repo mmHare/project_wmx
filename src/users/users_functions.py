@@ -5,14 +5,16 @@ import getpass
 from src.globals import UserRole, get_local_ip
 from .class_user import User
 from src.users.class_user_manager import get_user_manager
+from src.database.class_connection_manager import get_connection_manager
 
 user_manager = get_user_manager()
+connection_manager = get_connection_manager()
 
 # Menu function tuples
 
 
 def menu_user_log_in_if_visible() -> tuple:
-    if not user_manager.is_logged:
+    if connection_manager.connection and not user_manager.is_logged:
         return "Log in", menu_user_log_in
     else:
         return None, None

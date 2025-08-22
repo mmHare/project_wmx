@@ -30,7 +30,21 @@ class UserRole(Enum):
     USER = 2
 
 
+class CsvDelimeter(Enum):
+    COMMA = 1
+    SEMICOLON = 2
+
+    def __str__(self):
+        """Display as string value"""
+        return self.name.lower()
+
+    def __int__(self):
+        """Return int value"""
+        return self.value
+
 # Visibility/Accessibility
+
+
 class VisAccess(Enum):
     PRIVATE = 1
     PUBLIC = 2

@@ -2,10 +2,13 @@
 
 from copy import deepcopy
 import getpass
+from tkinter import Tk, filedialog
+
+import distutils
 
 from src.globals.glob_constants import *
 from src.globals.glob_enums import *
-from src.globals.help_functions import encrypt_data
+from src.globals.help_functions import encrypt_data, get_delim
 from src.config.class_config import get_config_manager, config_defaults, SENSITIVE_CONFIG_KEYS
 
 
@@ -13,11 +16,15 @@ config_manager = get_config_manager()
 
 
 def get_conf_key_name(key: str) -> str:
-    """Getting name for display"""
+    """Getting config key name for display"""
     for section in config_defaults:
         for _ in section:
             if key == CONF_DB_KIND:
                 return f"Kind ({DbKind.CENTRAL.value}/{DbKind.LOCAL.value})"
+            elif key == CONF_CSV_DELIM:
+                return "CSV delimeter"
+            elif key == CONF_USE_DIALOGS:
+                return "Use dialogs"
             else:
                 return (f"{key}").capitalize()
 
@@ -48,33 +55,53 @@ def print_config():
 def change_settings_value(setting: tuple):
     """Method verifying and returning value for specific config key"""
     (key, value) = setting
-    # database user
-    if key in [CONF_DB_L_USER, CONF_DB_C_USER]:
-        result = input("User: ")
-        result = encrypt_data(result)
-
-    # password
-    elif key in [CONF_DB_L_PASS, CONF_DB_C_PASS]:
-        result = getpass.getpass("New password: ")
-        result = encrypt_data(result)
-
-    # database kind
-    elif key == CONF_DB_KIND:
-        print(f"{get_conf_key_name(key)}: {value}")
-        result = input(
-            f"'{DbKind.CENTRAL.value}'/'{DbKind.LOCAL.value}': ").lower()
-        if result not in [DbKind.CENTRAL.value, DbKind.LOCAL.value]:
-            print(
-                f"Error: entered value is not '{DbKind.CENTRAL.value}'/'{DbKind.LOCAL.value}'")
-            return None
-
-    # other values
-    else:
-        print(f"{get_conf_key_name(key)}: {value}")
-        result = input("New value: ")
-
     try:
-        result = type(value)(result)
+        # database user
+        if key in [CONF_DB_L_USER, CONF_DB_C_USER]:
+            result = input("User: ")
+            result = encrypt_data(result)
+
+        # password
+        elif key in [CONF_DB_L_PASS, CONF_DB_C_PASS]:
+            result = getpass.getpass("New password: ")
+            result = encrypt_data(result)
+
+        # database kind
+        elif key == CONF_DB_KIND:
+            print(f"{get_conf_key_name(key)}: {value}")
+            result = input(
+                f"'{DbKind.CENTRAL.value}'/'{DbKind.LOCAL.value}': ").lower()
+            if result not in [DbKind.CENTRAL.value, DbKind.LOCAL.value]:
+                raise ValueError(
+                    f"Entered value is not '{DbKind.CENTRAL.value}'/'{DbKind.LOCAL.value}'")
+
+        # paths selection using dialogs
+        elif config_manager.config[CONF_GENERAL][CONF_USE_DIALOGS] and key in [CONF_DB_L_PATH]:
+            print("Please select new path: ")
+            root = Tk()
+            root.withdraw()  # hide main window
+            root.update()
+            root.attributes("-topmost", True)  # Force on top
+            root.focus_force()
+            path = filedialog.askdirectory(initialdir=value)
+            root.destroy()
+            result = path if path else value
+
+        # enum with int values | key in [CONF_CSV_DELIM]:
+        elif issubclass(type(value), Enum) and (isinstance(value.value, int)):
+            print(f"{get_conf_key_name(key)}: {value}")
+            for val in type(value):
+                print(f"{val.value}. {str(val).capitalize()}")
+            result = int(input("New value (select option): "))
+
+        # other values
+        else:
+            print(f"{get_conf_key_name(key)}: {value}")
+            result = input("New value: ")
+            if isinstance(value, bool):
+                result = bool(distutils.util.strtobool(result))
+
+            result = type(value)(result)
     except Exception as e:
         print(f"Error parsing configuration value: {e}")
         result = value
@@ -107,7 +134,7 @@ def loop_through_settings(config, changes_done: bool = False, base_level: bool =
             else:
                 conf_value = change_settings_value(
                     (selected_key, config[selected_key]))
-                if conf_value:
+                if conf_value is not None:
                     config[selected_key] = conf_value
                     return True
         else:

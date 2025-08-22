@@ -2,15 +2,18 @@
 
 from tkinter import Tk, filedialog
 import csv
+import os
 
 from src.globals.help_functions import clear_screen
 from .class_dict_table_manager import *
 from src.users.class_user_manager import get_user_manager
 from .dict_tab_options import table_list_items, table_options
+from src.config.class_config import get_config_manager
 
 
 dict_tab_manager = get_dict_tab_manager()
 user_manager = get_user_manager()
+config_manager = get_config_manager()
 
 
 def print_table(table: DictionaryTable):
@@ -231,22 +234,37 @@ def menu_import_table():
             table.columns = list(set(columns))
 
     try:
-        root = Tk()
-        root.withdraw()  # hide main window
-        root.update()
-        root.attributes("-topmost", True)  # Force on top
-        root.focus_force()
+        if config_manager.is_use_dialogs:
+            # using dialog
+            root = Tk()
+            root.withdraw()  # hide main window
+            root.update()
+            root.attributes("-topmost", True)  # Force on top
+            root.focus_force()
 
-        path = filedialog.askopenfilename(parent=root,
-                                          defaultextension=".csv",
-                                          filetypes=[
-                                              ("CSV Files", "*.csv"), ("All Files", "*.*")]
-                                          )
+            path = filedialog.askopenfilename(parent=root,
+                                              defaultextension=".csv",
+                                              filetypes=[
+                                                  ("CSV Files", "*.csv"), ("All Files", "*.*")]
+                                              )
 
-        root.destroy()
+            root.destroy()
+        else:
+            # console input
+            while True:
+                path = input("Enter filepath:\n")
+                if path == '-q':
+                    print("Aborting...")
+                    return
+                elif not os.path.isfile(path):
+                    print("File doesn't exist. '-q' to abort")
+                else:
+                    break
+
         if path:
             with open(path, newline='') as csvfile:
-                table_reader = csv.reader(csvfile, delimiter=',')
+                table_reader = csv.reader(
+                    csvfile, delimiter=config_manager.get_csv_delim)
                 read_lines = [row for row in table_reader]
 
                 if read_headers:
@@ -258,7 +276,6 @@ def menu_import_table():
                 clear_screen()
 
                 print("Imported data:")
-
                 table_list_items(table)
 
                 if input("Do you want to import this table? ('y' to confirm)\n") == "y":

@@ -80,3 +80,14 @@ def get_local_ip():
     except Exception as e:
         print(f"Error getting local IP: {e}")
         return None
+
+# other
+
+
+def get_delim(delim: CsvDelimeter) -> str:
+    if delim == CsvDelimeter.COMMA:
+        return ','
+    elif delim == CsvDelimeter.SEMICOLON:
+        return ';'
+    else:
+        return ''

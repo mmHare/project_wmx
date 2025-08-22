@@ -1,13 +1,17 @@
-"""Menu UI regarding Dict Table"""
+"""Menu UI after selecting dict table"""
 
 from tkinter import Tk, filedialog
 import csv
+import os
 
 from src.dict_tables.class_dict_table_manager import *
 from src.menu_functions import show_menu
+from src.config.class_config import get_config_manager
+
 
 dict_tab_manager = get_dict_tab_manager()
 user_manager = get_user_manager()
+config_manager = get_config_manager()
 
 
 def table_options(table_name: str):
@@ -115,28 +119,38 @@ def table_delete_item(table: DictionaryTable):
 
 def export_table(table: DictionaryTable):
     print("-- Export table to CSV --")
-
     print("Please select path to save the file:")
 
     try:
-        root = Tk()
-        root.withdraw()  # hide main window
-        root.update()
-        root.attributes("-topmost", True)  # Force on top
-        root.focus_force()
+        if config_manager.is_use_dialogs:
+            # using dialog
+            root = Tk()
+            root.withdraw()  # hide main window
+            root.update()
+            root.attributes("-topmost", True)  # Force on top
+            root.focus_force()
 
-        path = filedialog.asksaveasfilename(
-            parent=root,
-            initialfile=table.table_name,
-            title="Save file as...",
-            defaultextension=".csv",
-            filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
-        )
-        root.destroy()
+            export_dir = filedialog.asksaveasfilename(
+                parent=root,
+                initialfile=table.table_name,
+                title="Save file as...",
+                defaultextension=".csv",
+                filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+            )
+            root.destroy()
+        else:
+            # console input
+            export_dir = input()
+            if not os.path.isdir(export_dir):
+                if input("Directory does not exist. Do you want to create it? (y/n)\n") == 'y':
+                    os.makedirs(export_dir)
+                else:
+                    return
 
-        if path:
-            with open(path, "w", newline='') as csvfile:
-                table_writer = csv.writer(csvfile, delimiter=',')
+        if export_dir:
+            with open(export_dir, "w", newline='') as csvfile:
+                table_writer = csv.writer(
+                    csvfile, delimiter=config_manager.get_csv_delim)
                 table_writer.writerow(table.columns)
                 table_writer.writerows([[value for value in item.values()]
                                         for item in table.items])
@@ -145,5 +159,3 @@ def export_table(table: DictionaryTable):
             print("No path selected.")
     except Exception as e:
         print("Error while exporting to file:", e)
-
-    return

@@ -11,6 +11,9 @@ CONFIG_FILE_PATH = "./config.json"
 
 # config keys
 CONF_GENERAL = "general"
+CONF_CSV_DELIM = "csv_delim"
+CONF_USE_DIALOGS = "use_dialogs"
+
 CONF_DATABASE = "database"
 CONF_DB_KIND = "db_kind"
 CONF_DB_LOCAL = "local"
