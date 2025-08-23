@@ -1,5 +1,6 @@
 """Database connection module for the project."""
 
+import glob
 import os
 from pathlib import Path
 import psycopg2
@@ -8,7 +9,7 @@ import sqlite3
 
 from src.globals import *
 from src.globals.help_functions import decrypt_data
-from .sql_helper import query_select, query_modify
+from .sql_helper import execute_sql_script, query_select, query_modify
 from src.config.class_config import get_config_manager
 
 config_manager = get_config_manager()
@@ -105,36 +106,56 @@ class ConnectionManager:
     def update_db(self):
         """Method to update the database schema."""
         if not self.connection:
-            return False
+            print("No database connection.")
+            result = False
+        else:
+            try:
+                # schema scripts
+                schema_path = Path(__file__).parent / "sql" / \
+                    self.db_type.value / "schema" / "create_tables.sql"
 
-        cursor = self.db_cursor
-        sql_path = Path(__file__).parent / "sql" / \
-            self.db_type.value / "schema" / "create_tables.sql"
+                execute_sql_script(self.connection, self.db_type,
+                                   schema_path, auto_commit=False)
 
-        with open(sql_path, "r", encoding="utf-8") as file:
-            sql = " ".join(file.readlines())
+                # update scripts
+                script_path = Path(__file__).parent / "sql" / \
+                    self.db_type.value / "scripts"
+                if os.path.isdir(script_path):
+                    script_list = [f for f in glob.glob(
+                        str(script_path) + "/update_v*.sql")]
 
-        try:
-            if self.db_type == DbType.POSTGRES:
-                cursor.execute(sql)
-            elif self.db_type == DbType.SQLITE:
-                for statement in sql.split(';'):
-                    if statement.strip():
-                        cursor.execute(statement)
-            self.connection.commit()
-        except Exception as e:
-            print(f"Error ocurred during update: {e}")
-            self.connection.rollback()
-            return False
+                    # determine current db version
+                    sql_text = "SELECT value_str FROM configuration WHERE key_name = :key_in;"
+                    params = {"key_in": "db_version"}
+                    db_ver = self.exec_sql_select(
+                        sql_text, params, fetch_one=True)
+                    if db_ver:
+                        db_ver = db_ver[0]
+                    else:
+                        db_ver = "0.0.0"
 
-        try:
-            self.set_db_version(DB_VERSION[self.db_type])
-        except Exception as e:
-            print(f"Error setting database version: {e}")
-            return False
-        print("Database updated successfully.")
+                    # filter and execute update scripts
+                    filename_from = f"update_v{db_ver}.sql"
+                    filename_to = f"update_v{DB_VERSION[self.db_type]}.sql"
+                    script_list = [f for f in script_list if (
+                        filename_from < os.path.basename(f) <= filename_to)]
+
+                    for script_path in script_list:
+                        execute_sql_script(
+                            self.connection, self.db_type, script_path, auto_commit=False)
+
+                self.connection.commit()
+
+                # update version number
+                self.set_db_version(DB_VERSION[self.db_type])
+                print("Database updated successfully.")
+                result = True
+            except Exception as e:
+                self.connection.rollback()
+                print(f"Error ocurred during update: {e}")
+                result = False
         input("Press ENTER to continue...")
-        return True
+        return result
 
     def set_db_version(self, version: str):
         """Method to set the database version."""

@@ -25,3 +25,12 @@ CREATE TABLE IF NOT EXISTS dict_tables (
     owner_id INTEGER,
     table_name_ref TEXT
 );
+
+CREATE TABLE IF NOT EXISTS minigames(
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	code TEXT UNIQUE NOT NULL,
+	name TEXT,
+	description TEXT,
+	enabled INTEGER DEFAULT 1 NOT NULL,
+	game_mode INTEGER
+);

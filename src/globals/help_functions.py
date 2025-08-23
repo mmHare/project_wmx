@@ -9,6 +9,7 @@ import os
 
 from src.globals import *
 from src.globals.glob_constants import *
+from src.globals.glob_enums import CsvDelimeter
 
 
 def clear_screen():

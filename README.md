@@ -4,7 +4,7 @@ Learning project
 by Wojciech Zając, Maciej Zając
 
 ## About
-This project is meant for learning purposes. Console type program features:
+This project written in Python 3.11 is meant for learning purposes. Console type program features:
 * Menu system
     - As console program the UI bases on series of menus with option selection input
     - Helper function for showing consistent menus of provided functions
@@ -17,11 +17,12 @@ This project is meant for learning purposes. Console type program features:
     - "Central" connection with Postgre (server and credentials must be provided, user also needs permissions to select, insert, update and delete)
     - "Local" connection with SQLite database (can be created if does not exist)
     - Script executed database schema update (triggered by comparing database version number) - structure can be provided in scripts in sources and database will be updated
-        - Update is based on upserts and was not tested for future changes in table structure
+        - Update is twofold: 
+            1. schema check - depends on 'create if not exist'
+            2. update scripts with version number - update execute from version in database up to (including) the version in program
         - Both databases have separate directories for scripts and both are checked against their respective version numbers
     - Helper function for query execution with variable parameters for given Db type (generally used for single queries of select, insert, update, delete, upsert and drop)
-        - 'Simple queries' are mainly due to limitations of SQLite
-        - TODO: It should handle multiple queries, but I cannot guarantee the performance (WZ)
+        - TODO: It should handle multiple queries (WZ)
     - Database can be switched in program settings
 * User management system
     - Added/deleted users are in database table

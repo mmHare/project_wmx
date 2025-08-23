@@ -1,5 +1,6 @@
 """Reusable universal SQL query handlers for Postgre and SQLite"""
 
+from pathlib import Path
 import re
 import sqlite3
 from typing import Optional
@@ -67,7 +68,7 @@ def query_select(connection, db_type: DbType, sql_text: str, params: Optional[di
 def query_modify(connection, db_type: DbType, mode: QueryMode, sql_text: str,
                  params: Optional[dict] = None, key_fields: Optional[tuple] = None):
     """
-    Executes INSERT / UPDATE / DELETE / UPSERT queries.
+    Executes INSERT / UPDATE / DELETE / UPSERT / DROP queries.
 
     For UPSERT, key_fields must be provided as a tuple of unique columns.
     """
@@ -129,6 +130,36 @@ def query_modify(connection, db_type: DbType, mode: QueryMode, sql_text: str,
         connection.commit()
         return cursor.rowcount
 
+
+def execute_sql_script(connection, db_type: DbType, filepath: Path, auto_commit=True) -> bool:
+    """
+    Executes SQL script from given file. 
+    auto_commit=True commits changes; False if you want to commit outside the function.
+    Returns True if script was executed successfully.
+    """
+    try:
+        with open(filepath, "r", encoding="utf-8") as file:
+            sql = " ".join(file.readlines())
+
+        if sql.strip() == "":
+            return False
+
+        cursor = connection.cursor()
+
+        if db_type == DbType.POSTGRES:
+            cursor.execute(sql)
+        elif db_type == DbType.SQLITE:
+            for statement in sql.split(';'):
+                if statement.strip():
+                    cursor.execute(statement)
+        if auto_commit:
+            connection.commit()
+        return True
+    except Exception as e:
+        if auto_commit:
+            connection.rollback()
+        raise Exception(
+            f"Error ocurred during executing script {filepath}: {e}")
 
 ############### DEPRECATED - executing into positional format ###############
 

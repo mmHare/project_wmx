@@ -4,6 +4,7 @@ from src.globals.help_functions import *
 from src.menu_functions import show_menu
 from src.config.config_functions import *
 from src.database.db_functions import *
+from src.minigames.menu_minigames import menu_minigames_select
 from src.users.users_functions import *
 from src.dict_tables.dict_tab_functions import *
 from src.minigames import *
@@ -17,17 +18,20 @@ def main_menu():
         (menu_connect),
         ("Configuration settings", config_menu),
         ("Database settings", db_settings_screen),
-        ("User settings", user_management_screen),
-        (get_menu_minigames)
+        ("User settings", user_management_screen)
+        # (get_menu_minigames)
     ]
 
     show_menu("Main menu", options, info_top=info_user_connection,
               conditional_options=main_options_for_logged_user)
+    # as functions passed as options are not refreshed for program states,
+    # if there are some conditions for displying them, they should be put into 'conditional options'
     print("See Ya!")
 
 ########################################################
 
 
+# text will be refreshed each iteration of show_menu
 def info_user_connection():
     return connected_db_str() + "\n" + get_logged_user_info()
 
@@ -36,7 +40,10 @@ def main_options_for_logged_user():
     # conditional options for main menu
     options_list = []
     if connection_manager.connection and user_manager.is_logged:
+        # options available when user is logged in
         options_list.append(("Dictionary tables", dictionary_tables_screen))
+        options_list.append(("Minigames", menu_minigames_select))
+        options_list.append(("Math problems", math_problems_screen))
         options_list.append(("Log out", menu_user_log_out))
 
     options_list.append(("About", about_screen))
@@ -107,7 +114,7 @@ def user_management_screen():
 
 
 def dictionary_tables_screen():
-    """Method to display dictionary tables."""
+    """Method to display dictionary tables options"""
     options = [
         ("List tables", menu_list_tables),
         ("Add new table", menu_new_table),
@@ -117,3 +124,12 @@ def dictionary_tables_screen():
     ]
 
     show_menu("Dictionary tables", options)
+
+
+def math_problems_screen():
+    """Method displaying screen of Math Problems screen"""
+    options = [
+
+    ]
+
+    show_menu("Math problems", options)

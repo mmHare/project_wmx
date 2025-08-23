@@ -258,6 +258,8 @@ def menu_import_table():
                     return
                 elif not os.path.isfile(path):
                     print("File doesn't exist. '-q' to abort")
+                elif not path.endswith(".csv"):
+                    print("Not a .csv file. '-q' to abort")
                 else:
                     break
 
