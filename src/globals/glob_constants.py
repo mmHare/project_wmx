@@ -13,6 +13,7 @@ CONFIG_FILE_PATH = "./config.json"
 CONF_GENERAL = "general"
 CONF_CSV_DELIM = "csv_delim"
 CONF_USE_DIALOGS = "use_dialogs"
+CONF_LOG_PATH = "log_path"
 
 CONF_DATABASE = "database"
 CONF_DB_KIND = "db_kind"

@@ -82,9 +82,21 @@ def get_local_ip():
         print(f"Error getting local IP: {e}")
         return None
 
+
+# logs
+def save_to_log_file(path, msg):
+    """path - parent directory for logs"""
+    pass
+
+
+def delete_log_files(path):
+    """ Delete log files from previous month and older
+        path - parent directory for logs
+    """
+    pass
+
+
 # other
-
-
 def get_delim(delim: CsvDelimeter) -> str:
     if delim == CsvDelimeter.COMMA:
         return ','

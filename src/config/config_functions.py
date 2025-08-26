@@ -8,7 +8,7 @@ import distutils
 
 from src.globals.glob_constants import *
 from src.globals.glob_enums import *
-from src.globals.help_functions import encrypt_data, get_delim
+from src.globals.help_functions import delete_log_files, encrypt_data, get_delim, save_to_log_file
 from src.config.class_config import get_config_manager, config_defaults, SENSITIVE_CONFIG_KEYS
 
 
@@ -25,6 +25,8 @@ def get_conf_key_name(key: str) -> str:
                 return "CSV delimeter"
             elif key == CONF_USE_DIALOGS:
                 return "Use dialogs"
+            elif key == CONF_LOG_PATH:
+                return "Path to log files"
             else:
                 return (f"{key}").capitalize()
 
@@ -76,7 +78,7 @@ def change_settings_value(setting: tuple):
                     f"Entered value is not '{DbKind.CENTRAL.value}'/'{DbKind.LOCAL.value}'")
 
         # paths selection using dialogs
-        elif config_manager.config[CONF_GENERAL][CONF_USE_DIALOGS] and key in [CONF_DB_L_PATH]:
+        elif config_manager.config[CONF_GENERAL][CONF_USE_DIALOGS] and key in [CONF_DB_L_PATH, CONF_LOG_PATH]:
             print("Please select new path: ")
             root = Tk()
             root.withdraw()  # hide main window
@@ -158,3 +160,11 @@ def restore_settings():
     if input("Restore to defaults? (y/n)") == "y":
         config_manager.config = deepcopy(config_defaults)
         print("Configuration restored.")
+
+
+def save_to_log(msg: str):
+    save_to_log_file(config_manager.config[CONF_LOG_PATH], msg)
+
+
+def clear_logs():
+    delete_log_files(config_manager.config[CONF_LOG_PATH])
