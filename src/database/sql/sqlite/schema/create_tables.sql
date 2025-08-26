@@ -26,11 +26,12 @@ CREATE TABLE IF NOT EXISTS dict_tables (
     table_name_ref TEXT
 );
 
-CREATE TABLE IF NOT EXISTS minigames(
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	code TEXT UNIQUE NOT NULL,
-	name TEXT,
-	description TEXT,
-	enabled INTEGER DEFAULT 1 NOT NULL,
-	game_mode INTEGER
+CREATE TABLE IF NOT EXISTS minigames_scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_code TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    highscore INTEGER,
+    times_played INTEGER,
+    deleted INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT minigames_scores_unique_game_user UNIQUE (game_code, user_id)
 );

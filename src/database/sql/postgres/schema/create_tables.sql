@@ -31,13 +31,13 @@ CREATE TABLE IF NOT EXISTS public.dict_tables(
 	CONSTRAINT dict_tables_pk PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.minigames(
+CREATE TABLE IF NOT EXISTS public.minigames_scores (
 	id serial4 NOT NULL,
-	code varchar NOT NULL,
-	name varchar NULL,
-	description varchar NULL,
-	enabled bool DEFAULT true NOT NULL,
-	game_mode int4 NULL,
-	CONSTRAINT minigames_code UNIQUE (code),
-	CONSTRAINT minigames_pk PRIMARY KEY (id)
+	game_code varchar NOT NULL,
+	user_id int4 NOT NULL,
+	highscore int4 NULL,
+	times_played int4 NULL,
+	deleted bool DEFAULT false NOT NULL,
+	CONSTRAINT minigames_scores_pk PRIMARY KEY (id),
+	CONSTRAINT minigames_scores_unique_game_user UNIQUE (game_code, user_id)
 );

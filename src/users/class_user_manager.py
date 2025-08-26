@@ -1,6 +1,6 @@
 """User Class and UserManager Class"""
 
-from src.database.db_functions import query_insert, query_select, query_select_one, query_update
+from src.database.db_functions import get_db_kind_connection, query_insert, query_select, query_select_one, query_update
 from src.globals.glob_enums import UserRole
 from src.globals.help_functions import check_hashed, hash_text
 from .class_user import User
@@ -51,6 +51,7 @@ class UserManager:
             return
 
         user = User()
+        db_kind = get_db_kind_connection()
         sql_text = "SELECT * FROM users WHERE login = :login AND deleted = false;"
         result = query_select_one(sql_text, {"login": login}, dict_result=True)
         if result:
@@ -59,6 +60,7 @@ class UserManager:
             user.name = result.get("name", "")
             user.surname = result.get("surname", "")
             user.ip_address = result.get("ip_address", "")
+            user.db_kind = db_kind
             try:
                 user.user_role = UserRole(result.get("user_role", 0))
             except ValueError:

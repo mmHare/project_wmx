@@ -101,6 +101,10 @@ def connected_db_str():
     return result + f" - {bcolors.OKGREEN}Connected{bcolors.ENDC}" if connection_manager.connection else f" - {bcolors.FAIL}Not connected{bcolors.ENDC}"
 
 
+def get_db_kind_connection() -> DbKind:
+    return DB_KIND[connection_manager.db_type]
+
+
 # executing queries
 def query_select(sql_text: str, params: dict = None, dict_result: bool = False):
     return connection_manager.exec_sql_select(sql_text, params, dict_result=dict_result)

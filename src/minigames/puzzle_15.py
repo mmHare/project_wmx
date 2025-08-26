@@ -1,87 +1,105 @@
 import random
 
+from src.globals.help_functions import clear_screen
 
-def get_number():
-    numbers = [i for i in range(16)]
-
-    def draw_number():
-        nonlocal numbers
-
-        if len(numbers) > 0:
-            index = random.randint(0, len(numbers)-1)
-
-            drawed_number = numbers[index]
-            numbers.pop(index)
-            return drawed_number
-    return draw_number
+from .class_mini_game import GameMode, MiniGame, ScoreRule
 
 
-def print_board(board):
-    for row in board:
-        print('\t'.join('' if item == 0 else f"[{item}]" for item in row))
-    print('\n'+'-'*30)
+class Puzzle15(MiniGame):
 
+    def __init__(self, user=None):
+        super().__init__("15_puzzle", user)
+        self.name = "15 Puzzle"
+        self.game_mode = GameMode.SINGLE
+        self.score_rule = ScoreRule.DESC
+        self.game_data = dict()
+        self.board_solved = [[(i+4*j) for i in range(4)] for j in range(4)]
 
-def update_board(board, action):
-    def find_index_empty() -> tuple[int, int]:
-        for row in range(len(board)-1):
-            for col in range(len(board[row])):
-                if board[row][col] == 0:
-                    return col, row
-        else:
-            return -1, -1
+    def print_board(self, board):
+        """Method for printing the board 'tiles'"""
+        for row in board:
+            print('\t'.join('' if item == 0 else f"[{item}]" for item in row))
+        print('\n'+'-'*30)
 
-    def move_up():
-        x, y = find_index_empty()
-        if y < len(board)-1:
-            board[y][x], board[y+1][x] = board[y+1][x], board[y][x]
+    def update_board(self, board, action):
+        """Method for updating the tiles configuration basing on action movement"""
+        def find_index_empty() -> tuple[int, int]:
+            for i, row in enumerate(board):
+                for j, value in enumerate(row):
+                    if value == 0:
+                        return i, j
 
-    def move_down():
-        x, y = find_index_empty()
-        if y > 0:
-            board[y][x], board[y-1][x] = board[y-1][x], board[y][x]
+        def move_up():
+            y, x = find_index_empty()
+            if y < len(board)-1:
+                board[y][x], board[y+1][x] = board[y+1][x], board[y][x]
 
-    def move_left():
-        x, y = find_index_empty()
-        if x < len(board[y])-1:
-            board[y][x], board[y][x+1] = board[y][x+1], board[y][x]
+        def move_down():
+            y, x = find_index_empty()
+            if y > 0:
+                board[y][x], board[y-1][x] = board[y-1][x], board[y][x]
 
-    def move_right():
-        x, y = find_index_empty()
-        if x > 0:
-            board[y][x], board[y][x-1] = board[y][x-1], board[y][x]
+        def move_left():
+            y, x = find_index_empty()
+            if x < len(board[y])-1:
+                board[y][x], board[y][x+1] = board[y][x+1], board[y][x]
 
-    if action == "w":
-        move_up()
-    elif action == "s":
-        move_down()
-    elif action == "a":
-        move_left()
-    elif action == "d":
-        move_right()
-    return
+        def move_right():
+            y, x = find_index_empty()
+            if x > 0:
+                board[y][x], board[y][x-1] = board[y][x-1], board[y][x]
 
+        if action == "w":
+            move_up()
+        elif action == "s":
+            move_down()
+        elif action == "a":
+            move_left()
+        elif action == "d":
+            move_right()
+        return
 
-def play_15_puzzle():
-    draw_number = get_number()
+    def randomize_board(self):
+        # randomizing board into 4x4 matrix
+        nums = random.sample(range(16), 16)
+        return [nums[i:i+4] for i in range(0, 16, 4)]
 
-    board_solved = [[(i+4*j) for i in range(4)] for j in range(4)]
-    play_board = [[draw_number() for _ in range(4)] for _ in range(4)]
+    def play(self):
+        self.load_game()
+        play_board = self.game_data.get("board", None)
+        rounds = self.game_data.get("rounds", 1)
+        if not play_board:
+            play_board = self.randomize_board()
+            rounds = 1
 
-    print("Slide tiles (numbers) to match this configuration:")
-    print_board(board_solved)
+        while True:
+            clear_screen()
+            print("Slide tiles (numbers) to match this configuration:")
+            self.print_board(self.board_solved)
 
-    while True:
-        print_board(play_board)
-        print('\tW\nA\t\tD\n\tS\nq - Quit\n')
-        user_input = input().lower()
-        print(user_input)
+            print("BOARD:")
+            self.print_board(play_board)
+            print(f"Round: {rounds}")
+            print("\tW\nA\t\tD\n\tS")
+            print("q - Quit, r - Reset\n")
+            user_input = input().lower()
 
-        if user_input in ['q']:
-            break
-        if user_input in ['w', 's', 'a', 'd']:
-            update_board(play_board, user_input)
+            if user_input in ['q']:
+                if input("Do you want to save progress? (y/n)\n") == 'y':
+                    game_data = {"rounds": rounds, "board": play_board}
+                    self.save_game(game_data)
+                self.player_quits()
+                break
+            elif user_input == 'r':
+                if input("Do you wish to restart the game? Current progress will be cleared. (y/n)\n") == 'y':
+                    play_board = self.randomize_board()
+                    rounds = 1
+                    game_data = {"rounds": rounds, "board": play_board}
+                    self.save_game(game_data)
+            elif user_input in ['w', 's', 'a', 'd']:
+                self.update_board(play_board, user_input)
+                rounds += 1
 
-        if play_board == board_solved:
-            print("You win!")
-            break
+            if play_board == self.board_solved:
+                self.player_win(rounds)
+                break

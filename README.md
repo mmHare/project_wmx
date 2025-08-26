@@ -33,6 +33,7 @@ This project written in Python 3.11 is meant for learning purposes. Console type
     - "IP registration" - users can register into Db field their current IP Address (right now just local) and it will be shown on user list
 * Minigames
     - While user is logged in the minigames menu is available
+    - Game scores are saved in selected database, game data (including user id, database where it was played and game progress) is stored locally in a db file with the use of TinyDB
     - Simple games can be chosen to play:
         1. 15 Puzzle (slider board)
         2. Bulls and Cows (number sequence guessing)

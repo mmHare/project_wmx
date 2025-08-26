@@ -2,6 +2,7 @@
 
 
 from src.globals import UserRole
+from src.globals.glob_enums import DbKind
 
 
 class User:
@@ -15,6 +16,7 @@ class User:
         self.surname = ""
         self.ip_address = ""
         self.user_role = UserRole.USER
+        self.db_kind = DbKind.NONE
 
     @property
     def is_admin(self):
