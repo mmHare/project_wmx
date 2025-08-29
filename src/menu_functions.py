@@ -16,18 +16,20 @@ def func_to_tuple(func):
 def parse_option(opt):
     try:
         if type(opt) == types.FunctionType:
-            desc, func = opt()
+            desc, func, command = (opt() + (None,) * 3)[:3]
         elif type(opt) == tuple:
-            desc, func = opt
+            desc, func, command = (opt + (None,) * 3)[:3]
         else:
-            desc, func = None, None
-        return desc, func
+            desc, func, command = None, None, None
+        return desc, func, command
     except:
-        return None, None
+        return None, None, None
 
 
 def show_menu(title, options: list, info_top=None, info_bottom=None, conditional_options=None):
     """Display a menu with the given title and options.
+        Options tuple (description, function, command) - if description is None function will not be printed on the menu;
+        if command str is provided, then entering '/' and command, the function will be called (even if not visible)
 
     Args:
         title (str): The title of the menu.
@@ -52,19 +54,20 @@ def show_menu(title, options: list, info_top=None, info_bottom=None, conditional
 
         # options
         for option in options:
-            desc, func = parse_option(option)
+            desc, func, command = parse_option(option)
             if desc or func:
-                menu_options.append((desc, func))
+                menu_options.append((desc, func, command))
 
         # conditional options
         if conditional_options:
             for option in conditional_options():
-                desc, func = parse_option(option)
+                desc, func, command = parse_option(option)
                 if desc or func:
-                    menu_options.append((desc, func))
+                    menu_options.append((desc, func, command))
 
         # printing options
-        for i, option in enumerate(menu_options):
+        visible_options = [opt for opt in menu_options if opt[0] is not None]
+        for i, option in enumerate(visible_options):
             print(f"{i + 1}. {option[0]}")
         print("0. Exit")
 
@@ -79,8 +82,19 @@ def show_menu(title, options: list, info_top=None, info_bottom=None, conditional
 
         if choice in ['0', 'q']:
             return
-        elif choice.isdigit() and 0 <= int(choice) - 1 < len(menu_options):
-            func_tmp = menu_options[int(choice) - 1][1]
+        elif choice.startswith("/"):
+            # searching through commands
+            command = choice.split()[0][1:]
+            # command = command[1:]
+            for option in menu_options:
+                func_tmp = option[1]
+                if (option[2] == command) and (type(func_tmp) == types.FunctionType):
+                    clear_screen()
+                    func_tmp()
+                    break
+        elif choice.isdigit() and 0 <= int(choice) - 1 < len(visible_options):
+            # selected from printed options
+            func_tmp = visible_options[int(choice) - 1][1]
             if type(func_tmp) == types.FunctionType:
                 clear_screen()
                 func_tmp()

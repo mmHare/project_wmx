@@ -17,8 +17,8 @@ def main_menu():
         (menu_user_log_in_if_visible),
         (menu_connect),
         ("Configuration settings", config_menu),
-        ("Database settings", db_settings_screen),
-        ("User settings", user_management_screen)
+        ("Database settings", db_settings_screen, 'db'),
+        ("User settings", user_management_screen, 'usr')
     ]
 
     show_menu("Main menu", options, info_top=info_user_connection,
