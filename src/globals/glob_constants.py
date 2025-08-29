@@ -7,6 +7,7 @@ PROGRAM_VERSION = "1.0.0"
 DB_FILE_DIR = "./db"
 DB_NAME = "project_db"
 CONFIG_FILE_PATH = "./config.json"
+LOG_FILE_PATH = "./logs"
 
 
 # config keys

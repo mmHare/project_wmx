@@ -19,7 +19,6 @@ def main_menu():
         ("Configuration settings", config_menu),
         ("Database settings", db_settings_screen),
         ("User settings", user_management_screen)
-        # (get_menu_minigames)
     ]
 
     show_menu("Main menu", options, info_top=info_user_connection,

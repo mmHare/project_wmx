@@ -28,7 +28,8 @@ ENCRYPTED_KEY_PATHS = {
 config_defaults = {
     CONF_GENERAL: {
         CONF_CSV_DELIM: CsvDelimeter.COMMA,
-        CONF_USE_DIALOGS: True
+        CONF_USE_DIALOGS: True,
+        CONF_LOG_PATH: LOG_FILE_PATH
     },
     CONF_DATABASE: {
         CONF_DB_KIND: DbKind.NONE.value,

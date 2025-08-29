@@ -1,7 +1,6 @@
 import random
 
 from src.globals.help_functions import clear_screen
-
 from .class_mini_game import GameMode, MiniGame, ScoreRule
 
 
@@ -12,6 +11,7 @@ class Puzzle15(MiniGame):
         self.name = "15 Puzzle"
         self.game_mode = GameMode.SINGLE
         self.score_rule = ScoreRule.DESC
+        self.has_local_save = True
         self.game_data = dict()
         self.board_solved = [[(i+4*j) for i in range(4)] for j in range(4)]
 
@@ -29,34 +29,23 @@ class Puzzle15(MiniGame):
                     if value == 0:
                         return i, j
 
-        def move_up():
-            y, x = find_index_empty()
-            if y < len(board)-1:
-                board[y][x], board[y+1][x] = board[y+1][x], board[y][x]
-
-        def move_down():
-            y, x = find_index_empty()
-            if y > 0:
-                board[y][x], board[y-1][x] = board[y-1][x], board[y][x]
-
-        def move_left():
-            y, x = find_index_empty()
-            if x < len(board[y])-1:
-                board[y][x], board[y][x+1] = board[y][x+1], board[y][x]
-
-        def move_right():
-            y, x = find_index_empty()
-            if x > 0:
-                board[y][x], board[y][x-1] = board[y][x-1], board[y][x]
-
+        y, x = find_index_empty()
+        mv = [0, 0]  # move vector
         if action == "w":
-            move_up()
+            mv = [1, 0]
         elif action == "s":
-            move_down()
+            mv = [-1, 0]
         elif action == "a":
-            move_left()
+            mv = [0, 1]
         elif action == "d":
-            move_right()
+            mv = [0, -1]
+
+        y2 = y + mv[0]  # move coords
+        x2 = x + mv[1]
+        if (0 <= y2 < len(board)) and (0 <= x2 < len(board[y2])):
+            board[y][x], board[y2][x2] = board[y2][x2], board[y][x]
+            return True
+
         return
 
     def randomize_board(self):
@@ -65,9 +54,9 @@ class Puzzle15(MiniGame):
         return [nums[i:i+4] for i in range(0, 16, 4)]
 
     def play(self):
-        self.load_game()
-        play_board = self.game_data.get("board", None)
-        rounds = self.game_data.get("rounds", 1)
+        # self.load_game()
+        # play_board = self.game_data.get("board", None)
+        # rounds = self.game_data.get("rounds", 1)
         if not play_board:
             play_board = self.randomize_board()
             rounds = 1
@@ -97,9 +86,14 @@ class Puzzle15(MiniGame):
                     game_data = {"rounds": rounds, "board": play_board}
                     self.save_game(game_data)
             elif user_input in ['w', 's', 'a', 'd']:
-                self.update_board(play_board, user_input)
-                rounds += 1
+                if self.update_board(play_board, user_input):
+                    rounds += 1
 
             if play_board == self.board_solved:
                 self.player_win(rounds)
                 break
+
+    def new_game(self):
+        self.game_data["board"] = self.randomize_board()
+        self.game_data["rounds"] = 1
+        self.play()

@@ -167,14 +167,16 @@ class ConnectionManager:
                              params, key_fields=key_fields)
 
     def check_db_version(self):
-        sql_text = "SELECT value_str FROM configuration WHERE key_name = :key_in;"
-        params = {"key_in": "db_version"}
-
-        try:
-            db_ver = self.exec_sql_select(sql_text, params, fetch_one=True)
-        except Exception as e:
-            print("Error checking database version:", e)
-            return False
+        if not self.exec_sql_table_exists("configuration"):
+            db_ver = None
+        else:
+            try:
+                sql_text = "SELECT value_str FROM configuration WHERE key_name = :key_in;"
+                params = {"key_in": "db_version"}
+                db_ver = self.exec_sql_select(sql_text, params, fetch_one=True)
+            except Exception as e:
+                print("Error checking database version:", e)
+                return False
 
         if db_ver:
             db_ver = db_ver[0]

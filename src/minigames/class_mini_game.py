@@ -30,6 +30,7 @@ class MiniGame:
         self.score_rule = ScoreRule.ASC
         self.times_played = 0
         self.game_data = []
+        self.has_local_save = False
 
     def play(self):
         pass
@@ -50,7 +51,8 @@ class MiniGame:
         print("You loose!")
 
     def player_quits(self):
-        self.update_times_played()
+        # saves just updated times played, no game data
+        self.update_times_played(only_db=True)
         print("Good bye!")
 
     def update_highscore(self, score: int):
@@ -65,10 +67,7 @@ class MiniGame:
         else:
             self.times_played = self.times_played + 1
 
-    def save_game(self, game_data=None):
-        if game_data:
-            self.game_data = game_data
-
+    def save_game(self, game_data=None, only_db: bool = False):
         try:
             # save score to SQL db
             sql_text = "INSERT INTO minigames_scores (game_code, user_id, highscore, times_played) VALUES (:game_code, :user_id, :highscore, :times_played);"
@@ -79,16 +78,22 @@ class MiniGame:
                 "times_played": self.times_played
             }
             query_upsert(sql_text, params, ("game_code", "user_id"))
+            if only_db:
+                return
 
             # save local gamedata
-            data_to_save = {
-                "game_code": self.code,
-                "user_id": self.user.id,
-                "db_kind": self.user.db_kind.value,
-                "game_data": self.game_data
-            }
-            db = TinyDB("./db/saves.json")
-            db.insert(data_to_save)
+            if self.has_local_save:
+                if game_data:
+                    self.game_data = game_data
+
+                data_to_save = {
+                    "game_code": self.code,
+                    "user_id": self.user.id,
+                    "db_kind": self.user.db_kind.value,
+                    "game_data": self.game_data
+                }
+                db = TinyDB("./saves/saves.json")
+                db.insert(data_to_save)
         except Exception as e:
             print(f"Error while saving {self.code} data: {e}")
 
@@ -104,8 +109,8 @@ class MiniGame:
             self.highscore = result.get("highscore", 0)
             self.times_played = result.get("times_played", 0)
 
-            if os.path.isfile("./db/saves.json"):
-                db = TinyDB("./db/saves.json")
+            if self.has_local_save and os.path.isfile("./saves/saves.json"):
+                db = TinyDB("./saves/saves.json")
                 q_data = Query()
                 db_data = db.get(
                     (q_data.game_code == self.code) & (q_data.user_id == self.user.id) & (q_data.db_kind == self.user.db_kind.value))
@@ -115,3 +120,6 @@ class MiniGame:
             print(f"Error while loading {self.code} data: {e}")
 
         return self.game_data
+
+    def show_records(self):
+        pass

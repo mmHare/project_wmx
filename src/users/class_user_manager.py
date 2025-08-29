@@ -1,5 +1,6 @@
 """User Class and UserManager Class"""
 
+import datetime
 from src.database.db_functions import get_db_kind_connection, query_insert, query_select, query_select_one, query_update
 from src.globals.glob_enums import UserRole
 from src.globals.help_functions import check_hashed, hash_text
@@ -17,7 +18,7 @@ class UserManager:
 
     def get_login_list(self):
         result_list = []
-        sql_text = "SELECT * FROM users WHERE deleted = false;"
+        sql_text = "SELECT * FROM users WHERE deleted_at is NULL;"
         result = query_select(
             sql_text, dict_result=True)
         if result:
@@ -37,7 +38,7 @@ class UserManager:
 
     # if there is a user with the given login (not deleted)
     def check_if_user_exists(self, login):
-        sql_text = "SELECT id FROM users WHERE login = :login AND deleted = false;"
+        sql_text = "SELECT id FROM users WHERE login = :login AND deleted_at is NULL;"
         params = {"login": login}
         result = query_select_one(sql_text, params)
         if result:
@@ -52,7 +53,7 @@ class UserManager:
 
         user = User()
         db_kind = get_db_kind_connection()
-        sql_text = "SELECT * FROM users WHERE login = :login AND deleted = false;"
+        sql_text = "SELECT * FROM users WHERE login = :login AND deleted_at is NULL;"
         result = query_select_one(sql_text, {"login": login}, dict_result=True)
         if result:
             user.id = result.get("id", "")
@@ -75,7 +76,7 @@ class UserManager:
             print("Password cannot be empty.")
             return False
 
-        sql_text = "SELECT password FROM users WHERE login = :login AND deleted = false;"
+        sql_text = "SELECT password FROM users WHERE login = :login AND deleted_at is NULL;"
         result = query_select_one(sql_text, {"login": login})
         if not result or not check_hashed(password, result[0]):
             print("Incorrect password.")
@@ -104,8 +105,10 @@ class UserManager:
         return result
 
     def delete_user(self, login):
-        sql_text = "UPDATE users SET deleted = true WHERE login = :login_in;"
-        result = query_update(sql_text, {"login_in": login})
+        sql_text = "UPDATE users SET deleted_at = :deleted_at WHERE login = :login_in;"
+        params = {"deleted_at": datetime.now(
+            datetime.timezone.utc), "login_in": login}
+        result = query_update(sql_text, params)
         return result
 
     def register_ip(self, ip_address):
