@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
     password    TEXT NOT NULL,
     user_role   INTEGER NOT NULL,
     ip_address  VARCHAR(45), 
-    deleted_at  DATETIME DEFAULT NULL
+    deleted_at  DATETIME DEFAULT NULL,
+    guid        TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS dict_tables (

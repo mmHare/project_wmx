@@ -1,2 +1,2 @@
-from src.database.db_functions import *
-from src.database.class_connection_manager import get_connection_manager
+from .db_functions import *
+from .class_connection_manager import get_connection_manager

@@ -3,6 +3,7 @@
 
 from src.globals import UserRole
 from src.globals.glob_enums import DbKind
+from src.users.users_functions import get_user_guid
 
 
 class User:
@@ -21,3 +22,6 @@ class User:
     @property
     def is_admin(self):
         return self.user_role == UserRole.ADMIN
+
+    def get_guid(self):
+        return get_user_guid(self.id)

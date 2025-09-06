@@ -85,7 +85,7 @@ def get_local_ip():
 
 # logs
 def save_to_log_file(path, msg):
-    """path - parent directory for logs"""
+    """Path - parent directory for logs"""
     pass
 
 
@@ -96,7 +96,12 @@ def delete_log_files(path):
     pass
 
 
+def load_last_log_file(path) -> str:
+    pass
+
 # other
+
+
 def get_delim(delim: CsvDelimeter) -> str:
     if delim == CsvDelimeter.COMMA:
         return ','

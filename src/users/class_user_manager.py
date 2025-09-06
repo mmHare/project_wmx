@@ -5,6 +5,7 @@ from src.database.db_functions import get_db_kind_connection, query_insert, quer
 from src.globals.glob_enums import UserRole
 from src.globals.help_functions import check_hashed, hash_text
 from .class_user import User
+import uuid
 
 
 class UserManager:
@@ -92,17 +93,25 @@ class UserManager:
         self.logged_user.set_defaults()
 
     def add_user(self, user: User, password):
-        sql_text = "INSERT INTO users (name, surname, login, password, user_role) VALUES (:name_in, :surname_in, :login_in, :password_in, :user_role_in)"
+        sql_text = "INSERT INTO users (name, surname, login, password, user_role, guid) VALUES (:name_in, :surname_in, :login_in, :password_in, :user_role_in, :guid)"
         user_in = {
             "name_in": user.name,
             "surname_in": user.surname,
             "login_in": user.login,
             "password_in": hash_text(password),
-            "user_role_in": user.user_role.value
+            "user_role_in": user.user_role.value,
+            "guid": str(uuid.uuid4())
         }
         result = query_insert(sql_text, user_in)
-
         return result
+
+    def get_user_guid(self, user_id: int):
+        try:
+            sql_text = "SELECT guid FROM users WHERE id = :id;"
+            result = query_select_one(sql_text, {"id": user_id})
+            return uuid.UUID(result[0])
+        except:
+            return None
 
     def delete_user(self, login):
         sql_text = "UPDATE users SET deleted_at = :deleted_at WHERE login = :login_in;"

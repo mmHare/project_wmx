@@ -18,7 +18,9 @@ CREATE TABLE IF NOT EXISTS public.users (
 	user_role   int4 NOT NULL,
 	ip_address  varchar NULL,
 	deleted_at  timestamp WITH TIME ZONE DEFAULT NULL,
+	guid        varchar NOT NULL,
 	CONSTRAINT users_login_uq UNIQUE (login),
+	CONSTRAINT users_guid_uq UNIQUE (guid),
 	CONSTRAINT users_pk PRIMARY KEY (id)
 );
 

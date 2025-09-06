@@ -138,3 +138,7 @@ def get_logged_user_info():
         user = user_manager.logged_user
         return f"{user.user_role.name.capitalize()}: {user.login} - {user.name} {user.surname}"
     return "No user is logged in."
+
+
+def get_user_guid(user_id: int):
+    return user_manager.get_user_guid(user_id)

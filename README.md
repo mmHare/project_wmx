@@ -8,6 +8,7 @@ This project written in Python 3.11 is meant for learning purposes. Console type
 * Menu system
     - As console program the UI bases on series of menus with option selection input
     - Helper function for showing consistent menus of provided functions
+    - TODO: Function for saving log files (MZ)
 * Configuration
     - Dictionary type configuration used throughout program
     - Stored in json file
@@ -26,7 +27,7 @@ This project written in Python 3.11 is meant for learning purposes. Console type
     - Database can be switched in program settings
 * User management system
     - Added/deleted users are in database table
-    - User password is hashed
+    - User gets created UUID and their password is hashed
     - User can Log in/log out
     - Permissions of Admin and User enable/disable certain actions
     - List of users

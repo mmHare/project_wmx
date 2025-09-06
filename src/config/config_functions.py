@@ -8,7 +8,7 @@ import distutils
 
 from src.globals.glob_constants import *
 from src.globals.glob_enums import *
-from src.globals.help_functions import delete_log_files, encrypt_data, get_delim, save_to_log_file
+from src.globals.help_functions import *
 from src.config.class_config import get_config_manager, config_defaults, SENSITIVE_CONFIG_KEYS
 
 
@@ -168,3 +168,7 @@ def save_to_log(msg: str):
 
 def clear_logs():
     delete_log_files(config_manager.config[CONF_LOG_PATH])
+
+
+def load_last_log() -> str:
+    return load_last_log_file(config_manager.config[CONF_LOG_PATH])
