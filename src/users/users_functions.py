@@ -3,8 +3,9 @@
 import getpass
 
 from src.globals import UserRole, get_local_ip
+from .users_conversation import Conversation
 from .class_user import User
-from src.users.class_user_manager import get_user_manager
+from .class_user_manager import get_user_manager
 from src.database.class_connection_manager import get_connection_manager
 
 user_manager = get_user_manager()
@@ -126,6 +127,24 @@ def menu_delete_user():
             print(f"User {login} does not exist.")
 
 
+def menu_user_conversation():
+    login = input("Enter login of user to start conversation:")
+
+    if login == "":
+        return
+    if login == user_manager.logged_user.login:
+        print("You cannot choose yourself.")
+        return
+
+    if not user_manager.check_if_user_exists(login):
+        print(f"User {login} is not available")
+        return
+
+    peer_guid = user_manager.get_user_guid(login)
+    conversation = Conversation(user_manager.logged_user, peer_guid)
+    conversation.start()
+
+
 def register_user():
     local_ip = get_local_ip()
     print(f"Register current IP ({local_ip})? (y/n)")
@@ -140,5 +159,5 @@ def get_logged_user_info():
     return "No user is logged in."
 
 
-def get_user_guid(user_id: int):
+def get_user_guid(user_id: int | str):
     return user_manager.get_user_guid(user_id)

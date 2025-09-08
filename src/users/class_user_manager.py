@@ -17,6 +17,13 @@ class UserManager:
     def is_logged(self):
         return (self.logged_user.login != "")
 
+    @property
+    def logged_user_guid(self):
+        if self.logged_user.id > 0:
+            return self.get_user_guid(self.logged_user.id)
+        else:
+            ""
+
     def get_login_list(self):
         result_list = []
         sql_text = "SELECT * FROM users WHERE deleted_at is NULL;"
@@ -105,10 +112,16 @@ class UserManager:
         result = query_insert(sql_text, user_in)
         return result
 
-    def get_user_guid(self, user_id: int):
+    def get_user_guid(self, user_id: int | str):
         try:
-            sql_text = "SELECT guid FROM users WHERE id = :id;"
-            result = query_select_one(sql_text, {"id": user_id})
+            if isinstance(user_id, int):
+                sql_text = "SELECT guid FROM users WHERE id = :id;"
+                result = query_select_one(sql_text, {"id": user_id})
+            elif isinstance(user_id, str):
+                sql_text = "SELECT guid FROM users WHERE login = :login;"
+                result = query_select_one(sql_text, {"login": user_id})
+            else:
+                raise ValueError("Type not supported.")
             return uuid.UUID(result[0])
         except:
             return None

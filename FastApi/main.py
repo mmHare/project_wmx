@@ -2,6 +2,7 @@ import datetime
 import json
 from pathlib import Path
 from contextlib import asynccontextmanager
+import socket
 import time
 from typing import Optional
 
@@ -12,7 +13,7 @@ import asyncpg
 # ------------------------------
 # Load configuration
 # ------------------------------
-CONFIG_PATH = Path("FastApi/config.json")
+CONFIG_PATH = Path("./config.json")
 
 
 def load_config(path: Path):
@@ -44,6 +45,14 @@ async def lifespan(app: FastAPI):
         min_size=1,
         max_size=5,
     )
+
+    # register API address in database
+    sql_text = "INSERT INTO configuration (key_name, value_str, value_int) VALUES ($1, $2, $3) ON CONFLICT (key_name) DO UPDATE SET value_str = $2, value_int = $3;"
+    hostname = socket.gethostname()
+    ip_addr = socket.gethostbyname(hostname)
+    api_socket = 8000
+    await postgres_pool.execute(sql_text, "api_address", ip_addr, api_socket)
+
     print("Initialized TinyDB and PostgreSQL pool")
     yield   # 🚀 App runs while control is here
 
@@ -76,35 +85,38 @@ async def health_check():
 
 
 @app.get("/get-conv")
-def get_conversation(user_guid: str, recipient_guid: str, rec_limit: Optional[int] = 10, not_received: Optional[bool] = False):
+def get_conversation(user_guid: str, peer_guid: str, rec_limit: Optional[int] = 10, not_received: Optional[bool] = False):
     conversation_list = []
 
     User = Query()
     user = api_db.get(User.guid == user_guid)
     if user:
-        for message in user["messages"][recipient_guid]:
+        for message in user["messages"][peer_guid]:
             conversation_list.append(
-                (user_guid, message["text"], message["date_post"], message["received"]))
+                {"nickname": user["nickname"], "text": message["text"], "date_post": message["date_post"], "received": message["received"]})
 
-    Recipient = Query()
-    recipient = api_db.get(Recipient.guid == recipient_guid)
-    if recipient:
-        for message in recipient["text"][user_guid]:
+    Peer = Query()
+    peer = api_db.get(Peer.guid == peer_guid)
+    if peer:
+        for message in peer["messages"][user_guid]:
             if not_received and message["received"]:
                 continue
             conversation_list.append(
-                (recipient_guid, message["text"], message["date_post"], message["received"]))
+                {"nickname": peer["nickname"], "text": message["text"], "date_post": message["date_post"], "received": message["received"]})
 
-    conversation_list.sort(key=lambda m: m[2])
+    conversation_list.sort(key=lambda m: m["date_post"])
 
     if rec_limit:
         conversation_list = conversation_list[-rec_limit:]
 
-    return [f"{sender}: {text}" for sender, text, _, _ in conversation_list]
+    # save to db all peer as received
+    return conversation_list
+
+    # return [f"{sender}: {text}" for sender, text, _, _ in conversation_list]
 
 
 @app.post("/send-msg")
-async def send_message(user_guid: str, recipient_guid: str, message_text: str):
+async def send_message(user_guid: str, peer_guid: str, message_text: str):
     sql_text = "SELECT login FROM users WHERE (deleted_at is null) and (guid = $1)"
     result = await postgres_pool.fetchrow(sql_text, user_guid)
     if not result:
@@ -112,7 +124,7 @@ async def send_message(user_guid: str, recipient_guid: str, message_text: str):
     login = result[0]
 
     sql_text = "SELECT login FROM users WHERE (deleted_at is null) and (guid = $1)"
-    result = await postgres_pool.fetchrow(sql_text, recipient_guid)
+    result = await postgres_pool.fetchrow(sql_text, peer_guid)
     if not result:
         return "Recipient does not exist"
 
@@ -121,13 +133,13 @@ async def send_message(user_guid: str, recipient_guid: str, message_text: str):
     if not user:
         user = {"guid": user_guid, "nickname": login, "messages": {}}
 
-    user["messages"].setdefault(recipient_guid, []).append({
+    user["messages"].setdefault(peer_guid, []).append({
         "text": message_text,
         "date_post": datetime.datetime.now().isoformat(),
         "received": False
     })
     api_db.upsert(user, User.guid == user_guid)
-    return "Succes"
+    return message_text
 
 
 # ------------------------------
@@ -135,4 +147,7 @@ async def send_message(user_guid: str, recipient_guid: str, message_text: str):
 # ------------------------------
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    hostname = socket.gethostname()
+    ip_addr = socket.gethostbyname(hostname)
+    api_socket = 8000
+    uvicorn.run("main:app", host=ip_addr, port=api_socket, reload=True)

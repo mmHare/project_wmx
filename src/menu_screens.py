@@ -97,19 +97,28 @@ def user_management_screen():
     """Method to display user settings."""
 
     options = [
-        (menu_register_user),
+        # (),
         ("User list", menu_list_users),
         ("Add new user", menu_new_user),
     ]
 
+    show_menu("User settings", options, info_top=get_logged_user_info,
+              conditional_options=user_screen_conditional)
+
+
+def user_screen_conditional():
+    # conditional options for Users menu
+    options_list = []
     if connection_manager.connection and not user_manager.is_logged:
-        options.insert(0, ("Log in", menu_user_log_in))
+        options_list.append(("Log in", menu_user_log_in))
     elif connection_manager.connection and user_manager.is_logged:
         if user_manager.logged_user.is_admin:
-            options.append(("Delete user", menu_delete_user))
-        options.append(("Log out", menu_user_log_out))
+            options_list.append(("Delete user", menu_delete_user))
+        options_list.append(("Conversation", menu_user_conversation))
+        options_list.append(menu_register_user)
+        options_list.append(("Log out", menu_user_log_out))
 
-    show_menu("User settings", options, info_top=get_logged_user_info)
+    return options_list
 
 
 def dictionary_tables_screen():

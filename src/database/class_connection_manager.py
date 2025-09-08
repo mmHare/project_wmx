@@ -193,6 +193,23 @@ class ConnectionManager:
                 return self.update_db()
             return False
 
+    def get_api_address(self) -> tuple:
+        """Returns registered (address, port) of API communication"""
+        if not self.exec_sql_table_exists("configuration"):
+            return (None, None)
+        else:
+            try:
+                sql_text = "SELECT value_str, value_int FROM configuration WHERE key_name = :key_in;"
+                params = {"key_in": "api_address"}
+                result = self.exec_sql_select(sql_text, params, fetch_one=True)
+                if result:
+                    return (result[0], result[1])
+                else:
+                    return (None, None)
+            except Exception as e:
+                print("Error checking database version:", e)
+                return (None, None)
+
     def exec_sql_table_exists(self, table_name: str) -> bool:
         table_name = table_name.lower()
         if self.db_type == DbType.POSTGRES:
