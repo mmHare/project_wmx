@@ -1,6 +1,9 @@
 """Module management for API communication regarding users
     """
 
+import threading
+import time
+from fastapi import requests
 import httpx
 from src.database.class_connection_manager import get_connection_manager
 from src.globals.help_functions import clear_screen
@@ -63,32 +66,74 @@ class Conversation:
 
     def start(self):
         """Initializing and main conversation loop"""
+        stop_flag = False
+
+        def poll():
+            nonlocal stop_flag
+            while not stop_flag:
+                try:
+                    resp = httpx.get(f"{self.api_url}/get-msg-count", params={
+                        "user_guid": self.user_guid,
+                        "peer_guid": self.peer_guid
+                    })
+                    if resp.json()["msg-count"] > 0:
+                        clear_screen()
+                        self.history = self.get_history()
+                        for line in self.history:
+                            print(line)
+                except Exception as e:
+                    print("Error:", e)
+                time.sleep(3)
+
+        def user_input():
+            nonlocal stop_flag
+            while True:
+                # print("-q Quit")
+                cmd = input("> ")
+                if cmd.strip() == "-q":
+                    stop_flag = True
+                    break
+
+        def run():
+            # Create threads INSIDE the method
+            t1 = threading.Thread(target=poll)
+            t2 = threading.Thread(target=user_input)
+
+            t1.start()
+            t2.start()
+
+            # Wait for both threads to finish
+            t1.join()
+            t2.join()
+
         if not self.check_required():
             return
 
-        # clear_screen()
-        # self.history = self.get_history()
-        # for line in self.history:
-        #     print(line)
+        clear_screen()
+        self.history = self.get_history()
+        for line in self.history:
+            print(line)
 
-        while True:
-            clear_screen()
-            self.history = self.get_history()
-            for line in self.history:
-                print(line)
+        run()
 
-            print("-q Quit | -r Refresh")
-            user_input = input(f"{self.user.login}: ")
+        # while True:
+        #     clear_screen()
+        #     self.history = self.get_history()
+        #     for line in self.history:
+        #         print(line)
 
-            if user_input == "-q":
-                break
-            elif user_input == "-r":
-                clear_screen()
-                self.history = self.get_history()
-                for line in self.history:
-                    print(line)
-            else:
-                self.send_result = self.send_message(user_input)
+        #     print("-q Quit | -r Refresh")
+        #     user_input = input(f"{self.user.login}: ")
+
+        #     if user_input == "-q":
+        #         break
+        #     # elif user_input == "-r":
+        #     #     clear_screen()
+        #     #     self.history = self.get_history()
+        #     #     for line in self.history:
+        #     #         print(line)
+        #     else:
+        #         self.send_result = self.send_message(user_input)
 
         self.stop()
 

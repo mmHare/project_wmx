@@ -48,13 +48,14 @@ async def lifespan(app: FastAPI):
 
     # register API address in database
     sql_text = "INSERT INTO configuration (key_name, value_str, value_int) VALUES ($1, $2, $3) ON CONFLICT (key_name) DO UPDATE SET value_str = $2, value_int = $3;"
-    hostname = socket.gethostname()
-    ip_addr = socket.gethostbyname(hostname)
+    # hostname = socket.gethostname()
+    # ip_addr = socket.gethostbyname(hostname)
+    ip_addr = "192.168.0.30"
     api_socket = 8000
     await postgres_pool.execute(sql_text, "api_address", ip_addr, api_socket)
 
     print("Initialized TinyDB and PostgreSQL pool")
-    yield   # 🚀 App runs while control is here
+    yield   # App runs while control is here
 
     # Shutdown
     if postgres_pool:
@@ -84,6 +85,17 @@ async def health_check():
     }
 
 
+@app.get("/get-msg-count")
+def get_msg_count(user_guid: str, peer_guid: str, new_msg: Optional[bool] = True):
+    result = 0
+    Peer = Query()
+    peer = api_db.get(Peer.guid == peer_guid)
+    if peer:
+        result = len([m for m in peer["messages"][user_guid]
+                     if (not new_msg) or (not m["received"])])
+    return {"msg-count": result}
+
+
 @app.get("/get-conv")
 def get_conversation(user_guid: str, peer_guid: str, rec_limit: Optional[int] = 10, not_received: Optional[bool] = False):
     conversation_list = []
@@ -103,13 +115,15 @@ def get_conversation(user_guid: str, peer_guid: str, rec_limit: Optional[int] = 
                 continue
             conversation_list.append(
                 {"nickname": peer["nickname"], "text": message["text"], "date_post": message["date_post"], "received": message["received"]})
+            message["received"] = True
+
+    api_db.update(peer, Peer.guid == peer_guid)
 
     conversation_list.sort(key=lambda m: m["date_post"])
 
     if rec_limit:
         conversation_list = conversation_list[-rec_limit:]
 
-    # save to db all peer as received
     return conversation_list
 
     # return [f"{sender}: {text}" for sender, text, _, _ in conversation_list]
@@ -147,7 +161,8 @@ async def send_message(user_guid: str, peer_guid: str, message_text: str):
 # ------------------------------
 if __name__ == "__main__":
     import uvicorn
-    hostname = socket.gethostname()
-    ip_addr = socket.gethostbyname(hostname)
+    # hostname = socket.gethostname()
+    # ip_addr = socket.gethostbyname(hostname)
+    ip_addr = "0.0.0.0"
     api_socket = 8000
     uvicorn.run("main:app", host=ip_addr, port=api_socket, reload=True)
