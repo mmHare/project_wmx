@@ -2,7 +2,7 @@
 """The Ultimate Learing"""
 
 
-from src.globals.keyreader import KeyEnum, get_key
+# from src.globals.keyreader import KeyEnum, get_key
 from src.menu_screens import *
 from src.config.class_config import get_config_manager
 from src.database.class_connection_manager import get_connection_manager

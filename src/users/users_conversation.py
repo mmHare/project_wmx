@@ -93,6 +93,8 @@ class Conversation:
                 if cmd.strip() == "-q":
                     stop_flag = True
                     break
+                else:
+                    self.send_message(cmd)
 
         def run():
             # Create threads INSIDE the method

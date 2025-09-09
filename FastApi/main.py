@@ -103,14 +103,14 @@ def get_conversation(user_guid: str, peer_guid: str, rec_limit: Optional[int] = 
     User = Query()
     user = api_db.get(User.guid == user_guid)
     if user:
-        for message in user["messages"][peer_guid]:
+        for message in user["messages"].get(peer_guid, []):
             conversation_list.append(
                 {"nickname": user["nickname"], "text": message["text"], "date_post": message["date_post"], "received": message["received"]})
 
     Peer = Query()
     peer = api_db.get(Peer.guid == peer_guid)
     if peer:
-        for message in peer["messages"][user_guid]:
+        for message in peer["messages"].get(user_guid, []):
             if not_received and message["received"]:
                 continue
             conversation_list.append(
