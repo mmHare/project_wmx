@@ -5,7 +5,7 @@ import csv
 import os
 
 from src.dict_tables.class_dict_table_manager import *
-from src.menu_functions import show_menu
+from src.menu_functions import MenuScreen
 from src.config.class_config import get_config_manager
 
 
@@ -54,7 +54,7 @@ def table_options(table_name: str):
         ("Export to CSV", menu_export_table)
     ]
 
-    show_menu("Dictionary tables", options)
+    MenuScreen("Dictionary tables", options).show_menu()
 
 
 def table_details(table: DictionaryTable):

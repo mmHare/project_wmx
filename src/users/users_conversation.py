@@ -3,11 +3,9 @@
 
 import threading
 import time
-from fastapi import requests
 import httpx
 from src.database.class_connection_manager import get_connection_manager
 from src.globals.help_functions import clear_screen
-from src.menu_functions import show_menu
 from .class_user import User
 from .class_user_manager import get_user_manager
 
@@ -117,25 +115,6 @@ class Conversation:
             print(line)
 
         run()
-
-        # while True:
-        #     clear_screen()
-        #     self.history = self.get_history()
-        #     for line in self.history:
-        #         print(line)
-
-        #     print("-q Quit | -r Refresh")
-        #     user_input = input(f"{self.user.login}: ")
-
-        #     if user_input == "-q":
-        #         break
-        #     # elif user_input == "-r":
-        #     #     clear_screen()
-        #     #     self.history = self.get_history()
-        #     #     for line in self.history:
-        #     #         print(line)
-        #     else:
-        #         self.send_result = self.send_message(user_input)
 
         self.stop()
 

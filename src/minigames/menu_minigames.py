@@ -1,5 +1,5 @@
 from src.minigames import *
-from src.menu_functions import show_menu
+from src.menu_functions import MenuScreen
 from src.users.class_user_manager import get_user_manager
 
 user_manager = get_user_manager()
@@ -29,7 +29,7 @@ def play_fifteen_puzzle():
     options.append(("Continue game", load_game))
     # options.append(("Records", game.show_records))
 
-    show_menu("15 Puzzle", options)
+    MenuScreen("15 Puzzle", options).show_menu()
 
 
 ############# MENU #################################
@@ -42,4 +42,4 @@ def menu_minigames_select():
         ("15 Puzzle", play_fifteen_puzzle)
     ]
 
-    show_menu("Minigames", options)
+    MenuScreen("Minigames", options).show_menu()

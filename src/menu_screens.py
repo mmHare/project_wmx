@@ -1,7 +1,7 @@
 """List of program menu screens"""
 
 from src.globals.help_functions import *
-from src.menu_functions import show_menu
+from src.menu_functions import MenuScreen
 from src.config.config_functions import *
 from src.database.db_functions import *
 from src.minigames.menu_minigames import menu_minigames_select
@@ -21,8 +21,12 @@ def main_menu():
         ("User settings", user_management_screen, 'usr')
     ]
 
-    show_menu("Main menu", options, info_top=info_user_connection,
-              conditional_options=main_options_for_logged_user)
+    menu = MenuScreen("Main menu", options, info_top=info_user_connection)
+    menu.show_menu(conditional_options=main_options_for_logged_user)
+
+    # show_menu("Main menu", options, info_top=info_user_connection,
+    #           conditional_options=main_options_for_logged_user)
+
     # as functions passed as options are not refreshed for program states,
     # if there are some conditions for displying them, they should be put into 'conditional options'
     print("See Ya!")
@@ -73,7 +77,7 @@ def config_menu():
         ("Restore to defaults", restore_settings)
     ]
 
-    show_menu("Configuration settings", options)
+    MenuScreen("Configuration settings", options).show_menu()
 
 
 def db_settings_screen():
@@ -90,7 +94,8 @@ def db_settings_screen():
         ("Change database type", settings_changed)
     ]
 
-    show_menu("Database settings", options, info_top=connected_db_str)
+    MenuScreen("Database settings", options,
+               info_top=connected_db_str).show_menu()
 
 
 def user_management_screen():
@@ -102,8 +107,8 @@ def user_management_screen():
         ("Add new user", menu_new_user),
     ]
 
-    show_menu("User settings", options, info_top=get_logged_user_info,
-              conditional_options=user_screen_conditional)
+    menu = MenuScreen("User settings", options, info_top=get_logged_user_info)
+    menu.show_menu(conditional_options=user_screen_conditional)
 
 
 def user_screen_conditional():
@@ -131,7 +136,7 @@ def dictionary_tables_screen():
         ("Import table", menu_import_table)
     ]
 
-    show_menu("Dictionary tables", options)
+    MenuScreen("Dictionary tables", options).show_menu()
 
 
 def math_problems_screen():
@@ -140,4 +145,4 @@ def math_problems_screen():
 
     ]
 
-    show_menu("Math problems", options)
+    MenuScreen("Math problems", options).show_menu()

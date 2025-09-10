@@ -4,7 +4,9 @@ Learning project
 by Wojciech Zając, Maciej Zając
 
 ## About
-This project written in Python 3.11 is meant for learning purposes. Console type program features:
+This project written in Python 3.11 is meant for learning purposes. 
+
+### Console type program features:
 * Menu system
     - As console program the UI bases on series of menus with option selection input
     - Helper function for showing consistent menus of provided functions
@@ -44,7 +46,23 @@ This project written in Python 3.11 is meant for learning purposes. Console type
     - Visibility: as creating user is assigned as owner, the table can be given private or public access (can be seen by user only or everyone)
     - Adding, deleting items to table
     - Export and import table from CSV file (comma or semicolon delimeter can be set in configuration)
+* Conversation
+    - Simple chat communicator
+    - User must be logged in and choose another user to chat with
+    - Program communicates with REST API server (more in the section below)
+    - Messages are printed with sender's login
+    - Uses two threads: one for posting message (user input) with POST method and second for periodically (3s) checking for new messages - if there are any unseen messages, GET method is used to fetch the list of last messages
 
+### REST API server
+* Written with FastAPI
+* Is to be used independently from main program
+* Needs connection to Postgres 'central' database
+* Stores its data in TinyDB database
+* Methods are implemented for endpoints regarding the Conversation part:
+    - Messages are stored in relation with GUIDs of two peers
+    - POST message inserts new message with 'received' flag = False
+    - GET count messages can be used to count not 'received' messages for given user
+    - GET message history returns list (with given limit) of messages between two given peers, sorted by the date of post
 
 ## Setup
 
