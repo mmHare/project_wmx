@@ -5,7 +5,7 @@ import csv
 import os
 
 from src.dict_tables.class_dict_table_manager import *
-from src.menu_functions import MenuScreen
+from src.class_menu import MenuScreen
 from src.config.class_config import get_config_manager
 
 

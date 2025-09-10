@@ -1,7 +1,7 @@
 """List of program menu screens"""
 
 from src.globals.help_functions import *
-from src.menu_functions import MenuScreen
+from src.class_menu import MenuScreen
 from src.config.config_functions import *
 from src.database.db_functions import *
 from src.minigames.menu_minigames import menu_minigames_select

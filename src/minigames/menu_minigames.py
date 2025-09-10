@@ -1,5 +1,5 @@
 from src.minigames import *
-from src.menu_functions import MenuScreen
+from src.class_menu import MenuScreen
 from src.users.class_user_manager import get_user_manager
 
 user_manager = get_user_manager()

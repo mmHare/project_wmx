@@ -1,8 +1,35 @@
 """Menu showing the available options."""
 
 import types
+from typing import Optional
 
 from src.globals.help_functions import clear_screen
+
+
+class MenuOption:
+    def __init__(self, description: str, function: types.FunctionType, command: Optional[str] = None):
+        """
+        Args:
+            description (str): String being shown in the menu
+            function (types.FunctionType): Function assigned to the option
+            command (Optional[str], optional): Command str assigned to use instead of number. Defaults to None.
+        """
+        self.description = description
+        self.func = function
+        self.command = command
+
+    def __init__(self, tuple_function: types.FunctionType, command: Optional[str] = None):
+        """
+        Args:
+            tuple_function (types.FunctionType): function returning tuple of description and option function
+            command (Optional[str], optional): Command str assigned to use instead of number. Defaults to None.
+        """
+        self.description, self.func = (tuple_function() + (None,) * 2)[:2]
+        self.command = command
+
+    def __call__(self, *args, **kwds):
+        if callable(self.func):
+            self.func()
 
 
 class MenuScreen:
