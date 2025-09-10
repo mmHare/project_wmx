@@ -27,6 +27,8 @@ class MenuOption:
             self.func()
 
 
+########### MENU SCREEN ###########
+
 class MenuScreen:
     def __init__(self, title, options: list[MenuOption], info_top=None, info_bottom=None):
         self.__title = None
@@ -102,13 +104,20 @@ class MenuScreen:
             return (desc, func_out)
         return None
 
-    def show_menu(self, conditional_options: Optional[list[MenuOption]] = None):
+    def prepare_list(self) -> list[MenuOption]:
+        """Option for conditional (each iteration) adjusting list, result list which will be shown on the screen."""
+        return self.options
+
+    def show_menu(self):
         """Display menu options screen."""
 
-        if len(self.options) == 0:
+        screen_options = self.prepare_list()
+        if len(screen_options) == 0:
             return
 
         while True:
+            screen_options = self.prepare_list()
+
             clear_screen()
             menu_options = []
             print("=" * 10, self.title.upper(), "=" * 10)
@@ -117,15 +126,15 @@ class MenuScreen:
             self.print_info_top()
 
             # options
-            for option in self.options:
+            for option in screen_options:
                 if option.description or option.func:
                     menu_options.append(option)
 
             # conditional options
-            if conditional_options:
-                for option in conditional_options():
-                    if option.description or option.func:
-                        menu_options.append(option)
+            # if conditional_options:
+            #     for option in conditional_options():
+            #         if option.description or option.func:
+            #             menu_options.append(option)
 
             # printing options
             visible_options = [

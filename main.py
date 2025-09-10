@@ -3,9 +3,9 @@
 
 
 # from src.globals.keyreader import KeyEnum, get_key
-from src.config.class_config import get_config_manager
 from src.database.class_connection_manager import get_connection_manager
 from src.menu_screens import *
+from src.config.class_config import get_config_manager
 
 
 # print("Before get key")
@@ -38,13 +38,12 @@ from src.menu_screens import *
 class MainMenu(MenuScreen):
     def __init__(self):
         self.options = []
-        self.options.append(MenuOption.from_func(menu_user_log_in_if_visible))
         self.options.append(MenuOption.from_func(menu_connect))
         self.options.append(MenuOption("Configuration settings", config_menu))
         self.options.append(MenuOption(
             "Database settings", db_settings_screen, "db"))
         self.options.append(MenuOption("User settings",
-                                       user_management_screen, "usr"))
+                                       self.user_menu, "usr"))
 
         super().__init__("Main menu", self.options, info_top=self.info_user_connection)
 
@@ -54,24 +53,26 @@ class MainMenu(MenuScreen):
     def info_user_connection(self):
         return connected_db_str() + "\n" + get_logged_user_info()
 
-    def main_options_for_logged_user(self):
-        # conditional options for main menu
-        options_list = []
+    def prepare_list(self):
+        result_list = []
+        if connection_manager.connection and not user_manager.is_logged:
+            result_list.append(MenuOption("Log in", menu_user_log_in))
+
+        result_list += self.options
+
         if connection_manager.connection and user_manager.is_logged:
-            # options available when user is logged in
-            options_list.append(MenuOption(
+            result_list.append(MenuOption(
                 "Dictionary tables", dictionary_tables_screen))
-            options_list.append(MenuOption("Minigames", menu_minigames_select))
-            options_list.append(MenuOption(
+            result_list.append(MenuOption("Minigames", menu_minigames_select))
+            result_list.append(MenuOption(
                 "Math problems", math_problems_screen))
-            options_list.append(MenuOption("Log out", menu_user_log_out))
+            result_list.append(MenuOption("Log out", menu_user_log_out))
+        result_list.append(MenuOption("About", about_screen))
 
-        options_list.append(MenuOption("About", about_screen))
-        return options_list
+        return result_list
 
-    def show_menu(self):
-        return super().show_menu(self.main_options_for_logged_user)
-
+    def user_menu(self):
+        UserMenu().show_menu()
 
 ############# MAIN #############
 
