@@ -5,7 +5,7 @@ import csv
 import os
 
 from src.dict_tables.class_dict_table_manager import *
-from src.class_menu import MenuScreen
+from src.class_menu import MenuOption, MenuScreen
 from src.config.class_config import get_config_manager
 
 
@@ -47,11 +47,11 @@ def table_options(table_name: str):
 
     print(f"== {table.table_name.upper()} ==")
     options = [
-        ("Details", show_tab_details),
-        ("List items", show_tab_list_items),
-        ("Add new item", show_tab_add_item),
-        ("Delete item", show_delete_item),
-        ("Export to CSV", menu_export_table)
+        MenuOption("Details", show_tab_details),
+        MenuOption("List items", show_tab_list_items),
+        MenuOption("Add new item", show_tab_add_item),
+        MenuOption("Delete item", show_delete_item),
+        MenuOption("Export to CSV", menu_export_table)
     ]
 
     MenuScreen("Dictionary tables", options).show_menu()

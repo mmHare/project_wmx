@@ -1,8 +1,7 @@
 """Menu showing the available options."""
 
 import types
-from typing import Optional
-
+from typing import Callable, Optional, Tuple
 from src.globals.help_functions import clear_screen
 
 
@@ -18,22 +17,18 @@ class MenuOption:
         self.func = function
         self.command = command
 
-    def __init__(self, tuple_function: types.FunctionType, command: Optional[str] = None):
-        """
-        Args:
-            tuple_function (types.FunctionType): function returning tuple of description and option function
-            command (Optional[str], optional): Command str assigned to use instead of number. Defaults to None.
-        """
-        self.description, self.func = (tuple_function() + (None,) * 2)[:2]
-        self.command = command
+    @classmethod
+    def from_func(cls, tuple_function: Callable[[], Tuple[str, types.FunctionType]], command: Optional[str] = None):
+        description, function = tuple_function()
+        return cls(description, function, command)
 
-    def __call__(self, *args, **kwds):
+    def __call__(self):
         if callable(self.func):
             self.func()
 
 
 class MenuScreen:
-    def __init__(self, title, options: list, info_top=None, info_bottom=None):
+    def __init__(self, title, options: list[MenuOption], info_top=None, info_bottom=None):
         self.__title = None
         self.__options = None
         self.__info_top = None
@@ -48,7 +43,7 @@ class MenuScreen:
 ########### PROPERTIES ###########
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self.__title
 
     @title.setter
@@ -72,12 +67,19 @@ class MenuScreen:
         self.__info_bottom = value
 
     @property
-    def options(self):
+    def options(self) -> list[MenuOption]:
         return self.__options
 
     @options.setter
-    def options(self, value):
-        self.__options = value
+    def options(self, value: list[MenuOption]):
+        if not value:
+            self.__options = []
+        else:
+            for v in value:
+                if not isinstance(v, MenuOption):
+                    raise ValueError(
+                        "Options list should contain only MenuOption objects.")
+            self.__options = value
 
 ########### METHODS ###########
 
@@ -100,30 +102,8 @@ class MenuScreen:
             return (desc, func_out)
         return None
 
-    def parse_option(self, opt):
-        try:
-            if type(opt) == types.FunctionType:
-                desc, func, command = (opt() + (None,) * 3)[:3]
-            elif type(opt) == tuple:
-                desc, func, command = (opt + (None,) * 3)[:3]
-            else:
-                desc, func, command = None, None, None
-            return desc, func, command
-        except:
-            return None, None, None
-
-    def show_menu(self, conditional_options=None):
-        """Display a menu with the given title and options.
-            Options tuple (description, function, command) - if description is None function will not be printed on the menu;
-            if command str is provided, then entering '/' and command, the function will be called (even if not visible)
-
-        Args:
-            title (str): The title of the menu.
-            options (list): A list of tuples containing option descriptions and their corresponding functions. Or function returning such tuple.
-            info_top (optional): Additional information to display at the top of the menu (str or func returning str). Defaults to None.
-            info_bottom (optional): Additional information to display at the bottom of the menu (str or func returning str). Defaults to None.
-            conditional_options (optional): A function that returns a list of additional menu options based on certain conditions. Defaults to None.
-        """
+    def show_menu(self, conditional_options: Optional[list[MenuOption]] = None):
+        """Display menu options screen."""
 
         if len(self.options) == 0:
             return
@@ -138,22 +118,20 @@ class MenuScreen:
 
             # options
             for option in self.options:
-                desc, func, command = self.parse_option(option)
-                if desc or func:
-                    menu_options.append((desc, func, command))
+                if option.description or option.func:
+                    menu_options.append(option)
 
             # conditional options
             if conditional_options:
                 for option in conditional_options():
-                    desc, func, command = self.parse_option(option)
-                    if desc or func:
-                        menu_options.append((desc, func, command))
+                    if option.description or option.func:
+                        menu_options.append(option)
 
             # printing options
             visible_options = [
-                opt for opt in menu_options if opt[0] is not None]
+                opt for opt in menu_options if opt.description is not None]
             for i, option in enumerate(visible_options):
-                print(f"{i + 1}. {option[0]}")
+                print(f"{i + 1}. {option.description}")
             print("0. Exit")
 
             # footer
@@ -168,19 +146,16 @@ class MenuScreen:
             elif choice.startswith("/"):
                 # searching through commands
                 command = choice.split()[0][1:]
-                # command = command[1:]
                 for option in menu_options:
-                    func_tmp = option[1]
-                    if (option[2] == command) and (type(func_tmp) == types.FunctionType):
+                    if (option.command == command):
                         clear_screen()
-                        func_tmp()
+                        option()
                         break
             elif choice.isdigit() and 0 <= int(choice) - 1 < len(visible_options):
                 # selected from printed options
-                func_tmp = visible_options[int(choice) - 1][1]
-                if type(func_tmp) == types.FunctionType:
-                    clear_screen()
-                    func_tmp()
+                option = visible_options[int(choice) - 1]
+                clear_screen()
+                option()
             elif choice == "":
                 continue
             else:

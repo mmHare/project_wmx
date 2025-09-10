@@ -1,5 +1,5 @@
 from src.minigames import *
-from src.class_menu import MenuScreen
+from src.class_menu import MenuOption, MenuScreen
 from src.users.class_user_manager import get_user_manager
 
 user_manager = get_user_manager()
@@ -25,8 +25,8 @@ def play_fifteen_puzzle():
         # game.play()
 
     options = []
-    options.append(("New game", play_game))
-    options.append(("Continue game", load_game))
+    options.append(MenuOption("New game", play_game))
+    options.append(MenuOption("Continue game", load_game))
     # options.append(("Records", game.show_records))
 
     MenuScreen("15 Puzzle", options).show_menu()
@@ -38,8 +38,8 @@ def play_fifteen_puzzle():
 def menu_minigames_select():
     """Method to display minigames menu."""
     options = [
-        ("Bulls and Cows", play_bulls_n_cows),
-        ("15 Puzzle", play_fifteen_puzzle)
+        MenuOption("Bulls and Cows", play_bulls_n_cows),
+        MenuOption("15 Puzzle", play_fifteen_puzzle)
     ]
 
     MenuScreen("Minigames", options).show_menu()
