@@ -89,13 +89,6 @@ def db_disconnect():
         print("Error while disconnecting:", e)
 
 
-def menu_connect():
-    if not connection_manager.connection:
-        return "Connect", db_connect
-    else:
-        return None, None
-
-
 def connected_db_str():
     result = f"Database: {DB_KIND[connection_manager.db_type].value.capitalize()}"
     return result + f" - {bcolors.OKGREEN}Connected{bcolors.ENDC}" if connection_manager.connection else f" - {bcolors.FAIL}Not connected{bcolors.ENDC}"

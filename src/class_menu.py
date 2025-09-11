@@ -30,7 +30,7 @@ class MenuOption:
 ########### MENU SCREEN ###########
 
 class MenuScreen:
-    def __init__(self, title, options: list[MenuOption], info_top=None, info_bottom=None):
+    def __init__(self, title, options: list[MenuOption] = [], info_top=None, info_bottom=None):
         self.__title = None
         self.__options = None
         self.__info_top = None
@@ -105,18 +105,18 @@ class MenuScreen:
         return None
 
     def prepare_list(self) -> list[MenuOption]:
-        """Option for conditional (each iteration) adjusting list, result list which will be shown on the screen."""
+        """Option for dynamic (refreshing with each iteration) adjusting list, result list which will be shown on the screen."""
         return self.options
 
     def show_menu(self):
         """Display menu options screen."""
 
-        screen_options = self.prepare_list()
-        if len(screen_options) == 0:
-            return
-
         while True:
             screen_options = self.prepare_list()
+            if len(screen_options) == 0:
+                print("No available options.\n")
+                input("Press ENTER to continue...")
+                return
 
             clear_screen()
             menu_options = []
@@ -129,12 +129,6 @@ class MenuScreen:
             for option in screen_options:
                 if option.description or option.func:
                     menu_options.append(option)
-
-            # conditional options
-            # if conditional_options:
-            #     for option in conditional_options():
-            #         if option.description or option.func:
-            #             menu_options.append(option)
 
             # printing options
             visible_options = [
