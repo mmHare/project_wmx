@@ -1,7 +1,9 @@
 """Class representing the dictionary table."""
 
-from src.dict_tables.class_dict_table import DictionaryTable, TableItem
-from src.database.db_functions import *
+from enum import Enum
+from src.dict_tables.class_dict_table import DictionaryTable
+from src.database import DatabaseService, get_connection_manager
+from src.globals.glob_enums import QueryMode, VisAccess
 from src.users.class_user_manager import get_user_manager
 
 
@@ -13,10 +15,10 @@ class TableCheckResult(Enum):
     MISSING = 5        # neither exists
 
 
-user_manager = get_user_manager()
-
-
 class DictionaryTableManager:
+    _user_manager = get_user_manager()
+    _connection_manager = get_connection_manager()
+
     def __init__(self):
         pass
 
@@ -24,7 +26,7 @@ class DictionaryTableManager:
         tables = []
         try:
             sql_text = "SELECT * FROM dict_tables;"
-            result = query_select(sql_text, dict_result=True)
+            result = DatabaseService.query_select(sql_text, dict_result=True)
 
             for res in result:
                 table = DictionaryTable(res["table_name"])
@@ -38,18 +40,19 @@ class DictionaryTableManager:
         return tables
 
     def check_table_status(self, table: DictionaryTable) -> TableCheckResult:
-        user_id = user_manager.logged_user.id
+        user_id = self._user_manager.logged_user.id
         if table.table_name == "":
             raise Exception("No table name.")
 
         # if exist physically
-        table_exists = query_table_exists(
+        table_exists = DatabaseService.query_table_exists(
             table.table_name_ref)
 
         # if exist metadata record
         sql_text = "SELECT id, owner_id, visibility FROM dict_tables WHERE table_name_ref = :table_name_ref;"
         params = {"table_name_ref": table.table_name_ref}
-        record = query_select_one(sql_text, params, dict_result=True)
+        record = DatabaseService.query_select_one(
+            sql_text, params, dict_result=True)
 
         # --- Step 3: determine status ---
         if table_exists and record:
@@ -75,17 +78,17 @@ class DictionaryTableManager:
                 raise Exception(f"Table '{table.table_name}' already exists.")
 
             # create table
-            if query_create_table(table.table_name_ref, table.columns):
+            if DatabaseService.query_create_table(table.table_name_ref, table.columns):
                 # insert record to dict_tables
                 sql_text = "INSERT INTO dict_tables (table_name, description, visibility, owner_id, table_name_ref) VALUES (:table_name, :description, :visibility, :owner_id, :table_name_ref);"
                 params = {
                     "table_name": table.table_name,
                     "description": table.description,
                     "visibility": int(table.visibility),
-                    "owner_id": user_manager.logged_user.id,
+                    "owner_id": self._user_manager.logged_user.id,
                     "table_name_ref": table.table_name_ref
                 }
-                query_insert(sql_text, params)
+                DatabaseService.query_insert(sql_text, params)
 
             if self.check_table_status(table) != TableCheckResult.USABLE:
                 raise Exception(
@@ -106,7 +109,7 @@ class DictionaryTableManager:
             else:
                 sql_text = "DELETE FROM dict_tables WHERE table_name_ref = :table_name_ref;"
                 params = {"table_name_ref": table.table_name_ref}
-                query_delete(sql_text, params)
+                DatabaseService.query_delete(sql_text, params)
                 tab_check = self.check_table_status(table)
                 if tab_check in [TableCheckResult.USABLE, TableCheckResult.STALE]:
                     print("Could not delete table.")
@@ -114,7 +117,8 @@ class DictionaryTableManager:
 
             if tab_check in [TableCheckResult.ORPHAN]:
                 sql_text = f"DROP TABLE {table.table_name_ref};"
-                connection_manager.exec_sql_modify(QueryMode.DROP, sql_text)
+                self._connection_manager.exec_sql_modify(
+                    QueryMode.DROP, sql_text)
                 if self.check_table_status(table) in [TableCheckResult.ORPHAN]:
                     print("Could not drop table.")
                     result = False
@@ -134,7 +138,8 @@ class DictionaryTableManager:
                 return None
             sql_text = "SELECT * FROM dict_tables WHERE table_name_ref = :table_name_ref;"
             params = {"table_name_ref": table.table_name_ref}
-            record = query_select_one(sql_text, params, dict_result=True)
+            record = DatabaseService.query_select_one(
+                sql_text, params, dict_result=True)
             if record:
                 table.id = record["id"]
                 table.description = record["description"]
@@ -142,12 +147,13 @@ class DictionaryTableManager:
                 table.visibility = record["visibility"]
 
                 # column names
-                table.columns = connection_manager.sql_get_table_column_names(
+                table.columns = self._connection_manager.sql_get_table_column_names(
                     table.table_name_ref)
 
                 # table items
                 sql_text = f"SELECT * FROM {table.table_name_ref};"
-                tab_items = query_select(sql_text, dict_result=True)
+                tab_items = DatabaseService.query_select(
+                    sql_text, dict_result=True)
                 table.items = tab_items
 
         except Exception as e:
@@ -165,7 +171,7 @@ class DictionaryTableManager:
 
             sql_text = f"INSERT INTO {table.table_name_ref} ({','.join(item.keys())}) VALUES ({','.join(par_keys)});"
             params = item
-            sql_result = query_insert(sql_text, params)
+            sql_result = DatabaseService.query_insert(sql_text, params)
             return sql_result > 0
         except Exception as e:
             print("Error while inserting table item:", e)
@@ -177,7 +183,7 @@ class DictionaryTableManager:
                 set_values = ",".join(
                     [f"{key}={value}" for key, value in item.items()])
                 sql_text = F"UPDATE {table.table_name_ref} SET {set_values} WHERE id = {item['id']};"
-                query_update(sql_text)
+                DatabaseService.query_update(sql_text)
             else:
                 raise ValueError("Incorrect ID value.")
         except Exception as e:
@@ -189,7 +195,7 @@ class DictionaryTableManager:
         try:
             if item_id > 0:
                 sql_text = F"DELETE FROM {table.table_name_ref} WHERE id = {item_id};"
-                query_delete(sql_text)
+                DatabaseService.query_delete(sql_text)
             else:
                 raise ValueError("Incorrect ID value.")
         except Exception as e:

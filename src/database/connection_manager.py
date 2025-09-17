@@ -10,7 +10,7 @@ import sqlite3
 from src.globals import *
 from src.globals.help_functions import decrypt_data
 from .sql_helper import execute_sql_script, query_select, query_modify
-from src.config.class_config import get_config_manager
+from src.config.config_manager import get_config_manager
 
 config_manager = get_config_manager()
 

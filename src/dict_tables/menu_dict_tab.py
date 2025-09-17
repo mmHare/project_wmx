@@ -5,10 +5,10 @@ import csv
 import os
 
 from src.globals.help_functions import clear_screen
-from .class_dict_table_manager import *
 from src.users.class_user_manager import get_user_manager
+from src.config.config_manager import get_config_manager
+from .class_dict_table_manager import *
 from .dict_tab_options import table_list_items, table_options
-from src.config.class_config import get_config_manager
 
 
 dict_tab_manager = get_dict_tab_manager()

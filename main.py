@@ -3,8 +3,9 @@
 
 
 from src.menu_screens import *
-from src.config.class_config import get_config_manager
-from src.database.class_connection_manager import get_connection_manager
+from src.config import SettingsService
+from src.database import DatabaseService
+from src.users import UserService
 
 
 class MainMenu(MenuScreen):
@@ -15,14 +16,16 @@ class MainMenu(MenuScreen):
         print("See Ya!")
 
     def info_user_connection(self):
-        return connected_db_str() + "\n" + get_logged_user_info()
+        return DatabaseService.connected_db_str() + "\n" + UserService.get_logged_user_info()
 
     def prepare_list(self):
         result_list = []
-        if not connection_manager.connection:
-            result_list.append(MenuOption("Connect", db_connect))
-        if connection_manager.connection and not user_manager.is_logged:
-            result_list.append(MenuOption("Log in", menu_user_log_in))
+        if not DatabaseService.is_connected:
+            result_list.append(MenuOption(
+                "Connect", DatabaseService.connect))
+        if DatabaseService.is_connected and not user_manager.is_logged:
+            result_list.append(MenuOption(
+                "Log in", UserService.menu_user_log_in))
 
         result_list.append(MenuOption(
             "Configuration settings", self.config_menu))
@@ -31,13 +34,14 @@ class MainMenu(MenuScreen):
         result_list.append(MenuOption("User settings",
                                       self.user_menu, "usr"))
 
-        if connection_manager.connection and user_manager.is_logged:
+        if DatabaseService.is_connected and user_manager.is_logged:
             result_list.append(MenuOption(
                 "Dictionary tables", self.dict_tables_menu))
             result_list.append(MenuOption("Minigames", menu_minigames_select))
             result_list.append(MenuOption(
                 "Math problems", self.math_problems_menu))
-            result_list.append(MenuOption("Log out", menu_user_log_out))
+            result_list.append(MenuOption(
+                "Log out", UserService.menu_user_log_out))
         result_list.append(MenuOption("About", about_screen))
 
         return result_list
@@ -60,12 +64,9 @@ class MainMenu(MenuScreen):
 
 ############# MAIN #############
 if __name__ == "__main__":
-    config_manager = get_config_manager()
-    connection_manager = get_connection_manager()
-
     clear_screen()
-    config_manager.load_config()
-    connection_manager.reconnect()
+    SettingsService.load_config()
+    DatabaseService.reconnect()
 
     while True:
         """Main program loop"""

@@ -2,7 +2,7 @@
 from enum import Enum
 import os
 
-from src.database.db_functions import query_select_one, query_upsert
+from src.database.database_service import DatabaseService
 from src.users.class_user import User
 from tinydb import TinyDB, Query
 
@@ -77,7 +77,8 @@ class MiniGame:
                 "highscore": self.highscore,
                 "times_played": self.times_played
             }
-            query_upsert(sql_text, params, ("game_code", "user_id"))
+            DatabaseService.query_upsert(
+                sql_text, params, ("game_code", "user_id"))
             if only_db:
                 return
 
@@ -105,7 +106,8 @@ class MiniGame:
                 "user_id": self.user.id,
                 "deleted": False
             }
-            result = query_select_one(sql_text, params, dict_result=True)
+            result = DatabaseService.query_select_one(
+                sql_text, params, dict_result=True)
             self.highscore = result.get("highscore", 0)
             self.times_played = result.get("times_played", 0)
 

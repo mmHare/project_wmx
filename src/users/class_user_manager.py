@@ -1,11 +1,11 @@
 """User Class and UserManager Class"""
 
 import datetime
-from src.database.db_functions import get_db_kind_connection, query_insert, query_select, query_select_one, query_update
+import uuid
+from src.database.database_service import DatabaseService
 from src.globals.glob_enums import UserRole
 from src.globals.help_functions import check_hashed, hash_text
 from .class_user import User
-import uuid
 
 
 class UserManager:
@@ -24,10 +24,10 @@ class UserManager:
         else:
             ""
 
-    def get_login_list(self):
+    def get_login_list(self) -> list[User]:
         result_list = []
         sql_text = "SELECT * FROM users WHERE deleted_at is NULL;"
-        result = query_select(
+        result = DatabaseService.query_select(
             sql_text, dict_result=True)
         if result:
             for item in result:
@@ -48,7 +48,7 @@ class UserManager:
     def check_if_user_exists(self, login):
         sql_text = "SELECT id FROM users WHERE login = :login AND deleted_at is NULL;"
         params = {"login": login}
-        result = query_select_one(sql_text, params)
+        result = DatabaseService.query_select_one(sql_text, params)
         if result:
             return result[0] > 0
         else:
@@ -60,9 +60,10 @@ class UserManager:
             return
 
         user = User()
-        db_kind = get_db_kind_connection()
+        db_kind = DatabaseService.get_db_kind_connection()
         sql_text = "SELECT * FROM users WHERE login = :login AND deleted_at is NULL;"
-        result = query_select_one(sql_text, {"login": login}, dict_result=True)
+        result = DatabaseService.query_select_one(
+            sql_text, {"login": login}, dict_result=True)
         if result:
             user.id = result.get("id", "")
             user.login = result.get("login", "")
@@ -85,7 +86,7 @@ class UserManager:
             return False
 
         sql_text = "SELECT password FROM users WHERE login = :login AND deleted_at is NULL;"
-        result = query_select_one(sql_text, {"login": login})
+        result = DatabaseService.query_select_one(sql_text, {"login": login})
         if not result or not check_hashed(password, result[0]):
             print("Incorrect password.")
             return False
@@ -109,17 +110,19 @@ class UserManager:
             "user_role_in": user.user_role.value,
             "guid": str(uuid.uuid4())
         }
-        result = query_insert(sql_text, user_in)
+        result = DatabaseService.query_insert(sql_text, user_in)
         return result
 
     def get_user_guid(self, user_id: int | str):
         try:
             if isinstance(user_id, int):
                 sql_text = "SELECT guid FROM users WHERE id = :id;"
-                result = query_select_one(sql_text, {"id": user_id})
+                result = DatabaseService.query_select_one(
+                    sql_text, {"id": user_id})
             elif isinstance(user_id, str):
                 sql_text = "SELECT guid FROM users WHERE login = :login;"
-                result = query_select_one(sql_text, {"login": user_id})
+                result = DatabaseService.query_select_one(
+                    sql_text, {"login": user_id})
             else:
                 raise ValueError("Type not supported.")
             return uuid.UUID(result[0])
@@ -130,7 +133,7 @@ class UserManager:
         sql_text = "UPDATE users SET deleted_at = :deleted_at WHERE login = :login_in;"
         params = {"deleted_at": datetime.now(
             datetime.timezone.utc), "login_in": login}
-        result = query_update(sql_text, params)
+        result = DatabaseService.query_update(sql_text, params)
         return result
 
     def register_ip(self, ip_address):
@@ -142,7 +145,7 @@ class UserManager:
         if ip_address:
             sql_text = "UPDATE users SET ip_address = :ip_address WHERE id = :user_id;"
             params = {"user_id": self.logged_user.id, "ip_address": ip_address}
-            query_update(sql_text, params)
+            DatabaseService.query_update(sql_text, params)
             print("Successfully registered IP address.")
             return
         else:

@@ -2,10 +2,10 @@
 
 from src.globals.help_functions import *
 from src.class_menu import MenuScreen, MenuOption
-from src.config.config_functions import *
-from src.database.db_functions import *
-from src.users.users_functions import *
-from src.dict_tables.dict_tab_functions import *
+from src.config import SettingsService
+from src.database import DatabaseService
+from src.users import UserService
+from src.dict_tables.menu_dict_tab import *
 from src.minigames import *
 
 
@@ -13,31 +13,33 @@ class ConfigMenu(MenuScreen):
     def __init__(self):
         super().__init__("Configuration settings")
         self.options = [
-            MenuOption("View current settings", print_config),
+            MenuOption("View current settings", SettingsService.print_config),
             MenuOption("Change settings", self.settings_changed),
-            MenuOption("Restore to defaults", restore_settings)
+            MenuOption("Restore to defaults", SettingsService.restore_settings)
         ]
 
     def settings_changed(self):
-        if change_settings():
+        if SettingsService.change_settings():
             user_manager.log_out()
-            connection_manager.reconnect()
+            DatabaseService.reconnect()
 
 
 class DbSettingsMenu(MenuScreen):
     def __init__(self):
-        super().__init__("Database settings", info_top=connected_db_str)
+        super().__init__("Database settings", info_top=DatabaseService.connected_db_str)
         self.options = [
-            MenuOption("Check database connection", check_db_connection),
-            MenuOption("Reconnect to database", db_reconnect),
-            MenuOption("Check database version", check_db_version),
+            MenuOption("Check database connection",
+                       DatabaseService.check_db_connection),
+            MenuOption("Reconnect to database", DatabaseService.reconnect),
+            MenuOption("Check database version",
+                       DatabaseService.check_db_version),
             MenuOption("Change database type", self.settings_changed)
         ]
 
     def settings_changed(self):
-        if change_db_type():
+        if DatabaseService.change_db_type():
             user_manager.log_out()
-            connection_manager.reconnect()
+            DatabaseService.reconnect()
 
 
 class UserMenu(MenuScreen):
@@ -46,21 +48,27 @@ class UserMenu(MenuScreen):
 
     def prepare_list(self):
         result_list = []
-        if connection_manager.connection and not user_manager.is_logged:
-            result_list.append(MenuOption("Log in", menu_user_log_in))
-
-        result_list.append(MenuOption("User list", menu_list_users))
-        result_list.append(MenuOption("Add new user", menu_new_user))
-
-        if connection_manager.connection and user_manager.is_logged:
-            if user_manager.logged_user.is_admin:
-                result_list.append(MenuOption("Delete user", menu_delete_user))
+        if DatabaseService.is_connected and not user_manager.is_logged:
             result_list.append(MenuOption(
-                "Conversation", menu_user_conversation))
-            result_list.append(MenuOption.from_func(menu_register_user))
-            result_list.append(MenuOption("Log out", menu_user_log_out))
+                "Log in", UserService.menu_user_log_in))
 
-        self.info_top = get_logged_user_info()
+        result_list.append(MenuOption(
+            "User list", UserService.menu_list_users))
+        result_list.append(MenuOption(
+            "Add new user", UserService.menu_new_user))
+
+        if DatabaseService.is_connected and user_manager.is_logged:
+            if user_manager.logged_user.is_admin:
+                result_list.append(MenuOption(
+                    "Delete user", UserService.menu_delete_user))
+            result_list.append(MenuOption(
+                "Conversation", UserService.menu_user_conversation))
+            result_list.append(MenuOption.from_func(
+                UserService.menu_register_user))
+            result_list.append(MenuOption(
+                "Log out", UserService.menu_user_log_out))
+
+        self.info_top = UserService.get_logged_user_info()
         return result_list
 
 

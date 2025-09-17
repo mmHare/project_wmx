@@ -1,2 +1,7 @@
-from .db_functions import *
-from .class_connection_manager import get_connection_manager
+from .connection_manager import get_connection_manager
+from .database_service import DatabaseService
+
+__all__ = [
+    "get_connection_manager",
+    "DatabaseService"
+]

@@ -6,7 +6,7 @@ import os
 
 from src.dict_tables.class_dict_table_manager import *
 from src.class_menu import MenuOption, MenuScreen
-from src.config.class_config import get_config_manager
+from src.config.config_manager import get_config_manager
 
 
 dict_tab_manager = get_dict_tab_manager()

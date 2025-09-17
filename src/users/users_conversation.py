@@ -4,23 +4,21 @@
 import threading
 import time
 import httpx
-from src.database.class_connection_manager import get_connection_manager
+from src.database import DatabaseService
 from src.globals.help_functions import clear_screen
 from .class_user import User
 from .class_user_manager import get_user_manager
 
 
-user_manager = get_user_manager()
-connection_manager = get_connection_manager()
-
-
 class Conversation:
+    _user_manager = get_user_manager()
+
     def __init__(self, user: User, peer_guid: str, api_addr_port: tuple[str, int] = None):
         self.user = user
-        self.user_guid = user_manager.get_user_guid(user.id)
+        self.user_guid = self._user_manager.get_user_guid(user.id)
         self.peer_guid = peer_guid
         if api_addr_port is None:
-            self.api_addr, self.api_port = connection_manager.get_api_address()
+            self.api_addr, self.api_port = DatabaseService.get_api_address()
         else:
             self.api_addr, self.api_port = api_addr_port
 
