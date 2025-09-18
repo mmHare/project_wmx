@@ -1,27 +1,27 @@
 from src.minigames import *
 from src.class_menu import MenuOption, MenuScreen
-from src.users.class_user_manager import get_user_manager
-
-user_manager = get_user_manager()
+from src.users.user_service import UserService
+from .puzzle_15 import Puzzle15
+from .bulls_n_cows import BullsAndCows
 
 
 def play_bulls_n_cows():
-    game = BullsAndCows(user_manager.logged_user)
+    game = BullsAndCows(UserService.logged_user)
     game.play()
 
 
 def play_fifteen_puzzle():
-    # game = Puzzle15(user_manager.logged_user)
+    # game = Puzzle15(UserService.logged_user)
     # game.play()
 
     def load_game():
         # nonlocal game
-        game = Puzzle15(user_manager.logged_user)
+        game = Puzzle15(UserService.logged_user)
         game.load_game()
         game.play()
 
     def play_game():
-        Puzzle15(user_manager.logged_user).play()
+        Puzzle15(UserService.logged_user).play()
         # game.play()
 
     options = []

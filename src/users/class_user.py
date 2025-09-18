@@ -21,3 +21,9 @@ class User:
     @property
     def is_admin(self):
         return self.user_role == UserRole.ADMIN
+
+    def __str__(self):
+        if self.login != "":
+            return f"{self.user_role.name.capitalize()}: {self.login} - {self.name} {self.surname}"
+        else:
+            return ""

@@ -2,10 +2,10 @@
 """The Ultimate Learing"""
 
 
+from src.users import UserService, UsersMenu
 from src.menu_screens import *
 from src.config import SettingsService
 from src.database import DatabaseService
-from src.users import UserService
 
 
 class MainMenu(MenuScreen):
@@ -23,9 +23,9 @@ class MainMenu(MenuScreen):
         if not DatabaseService.is_connected:
             result_list.append(MenuOption(
                 "Connect", DatabaseService.connect))
-        if DatabaseService.is_connected and not user_manager.is_logged:
+        if DatabaseService.is_connected and not UserService.is_logged:
             result_list.append(MenuOption(
-                "Log in", UserService.menu_user_log_in))
+                "Log in", UsersMenu.user_log_in))
 
         result_list.append(MenuOption(
             "Configuration settings", self.config_menu))
@@ -34,14 +34,14 @@ class MainMenu(MenuScreen):
         result_list.append(MenuOption("User settings",
                                       self.user_menu, "usr"))
 
-        if DatabaseService.is_connected and user_manager.is_logged:
+        if DatabaseService.is_connected and UserService.is_logged:
             result_list.append(MenuOption(
                 "Dictionary tables", self.dict_tables_menu))
             result_list.append(MenuOption("Minigames", menu_minigames_select))
             result_list.append(MenuOption(
                 "Math problems", self.math_problems_menu))
             result_list.append(MenuOption(
-                "Log out", UserService.menu_user_log_out))
+                "Log out", UsersMenu.user_log_out))
         result_list.append(MenuOption("About", about_screen))
 
         return result_list
@@ -53,7 +53,7 @@ class MainMenu(MenuScreen):
         DbSettingsMenu().show_menu()
 
     def user_menu(self):
-        UserMenu().show_menu()
+        UsersMenu().show_menu()
 
     def dict_tables_menu(self):
         DictTablesMenu().show_menu()

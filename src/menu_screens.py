@@ -4,9 +4,9 @@ from src.globals.help_functions import *
 from src.class_menu import MenuScreen, MenuOption
 from src.config import SettingsService
 from src.database import DatabaseService
-from src.users import UserService
 from src.dict_tables.menu_dict_tab import *
 from src.minigames import *
+from src.users.user_service import UserService
 
 
 class ConfigMenu(MenuScreen):
@@ -20,7 +20,7 @@ class ConfigMenu(MenuScreen):
 
     def settings_changed(self):
         if SettingsService.change_settings():
-            user_manager.log_out()
+            UserService.log_out()
             DatabaseService.reconnect()
 
 
@@ -38,38 +38,8 @@ class DbSettingsMenu(MenuScreen):
 
     def settings_changed(self):
         if DatabaseService.change_db_type():
-            user_manager.log_out()
+            UserService.log_out()
             DatabaseService.reconnect()
-
-
-class UserMenu(MenuScreen):
-    def __init__(self):
-        super().__init__("User settings")
-
-    def prepare_list(self):
-        result_list = []
-        if DatabaseService.is_connected and not user_manager.is_logged:
-            result_list.append(MenuOption(
-                "Log in", UserService.menu_user_log_in))
-
-        result_list.append(MenuOption(
-            "User list", UserService.menu_list_users))
-        result_list.append(MenuOption(
-            "Add new user", UserService.menu_new_user))
-
-        if DatabaseService.is_connected and user_manager.is_logged:
-            if user_manager.logged_user.is_admin:
-                result_list.append(MenuOption(
-                    "Delete user", UserService.menu_delete_user))
-            result_list.append(MenuOption(
-                "Conversation", UserService.menu_user_conversation))
-            result_list.append(MenuOption.from_func(
-                UserService.menu_register_user))
-            result_list.append(MenuOption(
-                "Log out", UserService.menu_user_log_out))
-
-        self.info_top = UserService.get_logged_user_info()
-        return result_list
 
 
 class DictTablesMenu(MenuScreen):

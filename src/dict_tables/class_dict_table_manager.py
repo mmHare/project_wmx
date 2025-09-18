@@ -4,7 +4,7 @@ from enum import Enum
 from src.dict_tables.class_dict_table import DictionaryTable
 from src.database import DatabaseService, get_connection_manager
 from src.globals.glob_enums import QueryMode, VisAccess
-from src.users.class_user_manager import get_user_manager
+from src.users.user_service import UserService
 
 
 class TableCheckResult(Enum):
@@ -16,7 +16,6 @@ class TableCheckResult(Enum):
 
 
 class DictionaryTableManager:
-    _user_manager = get_user_manager()
     _connection_manager = get_connection_manager()
 
     def __init__(self):
@@ -40,7 +39,7 @@ class DictionaryTableManager:
         return tables
 
     def check_table_status(self, table: DictionaryTable) -> TableCheckResult:
-        user_id = self._user_manager.logged_user.id
+        user_id = UserService.logged_user.id
         if table.table_name == "":
             raise Exception("No table name.")
 
@@ -85,7 +84,7 @@ class DictionaryTableManager:
                     "table_name": table.table_name,
                     "description": table.description,
                     "visibility": int(table.visibility),
-                    "owner_id": self._user_manager.logged_user.id,
+                    "owner_id": UserService.logged_user.id,
                     "table_name_ref": table.table_name_ref
                 }
                 DatabaseService.query_insert(sql_text, params)

@@ -7,7 +7,7 @@ import httpx
 from src.database import DatabaseService
 from src.globals.help_functions import clear_screen
 from .class_user import User
-from .class_user_manager import get_user_manager
+from .user_manager import get_user_manager
 
 
 class Conversation:

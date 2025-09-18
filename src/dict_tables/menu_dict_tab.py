@@ -5,14 +5,12 @@ import csv
 import os
 
 from src.globals.help_functions import clear_screen
-from src.users.class_user_manager import get_user_manager
 from src.config.config_manager import get_config_manager
 from .class_dict_table_manager import *
 from .dict_tab_options import table_list_items, table_options
 
 
 dict_tab_manager = get_dict_tab_manager()
-user_manager = get_user_manager()
 config_manager = get_config_manager()
 
 
@@ -34,7 +32,7 @@ def list_dictionary_tables(table_list: list[DictionaryTable] = None):
     if not table_list:
         table_list = dict_tab_manager.get_table_list()
     i = 1
-    usr_id = user_manager.logged_user.id
+    usr_id = UserService.logged_user.id
     for table in table_list:
         if (table.is_public) or (table.owner_id == usr_id):
             print(f"{i}. {table.table_name}")
@@ -44,7 +42,7 @@ def list_dictionary_tables(table_list: list[DictionaryTable] = None):
 
 def menu_list_tables():
     def filter_tables(tab: DictionaryTable):
-        return tab.is_public or tab.owner_id == user_manager.logged_user.id
+        return tab.is_public or tab.owner_id == UserService.logged_user.id
 
     table_list = dict_tab_manager.get_table_list()
 

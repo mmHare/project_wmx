@@ -10,7 +10,6 @@ from src.config.config_manager import get_config_manager
 
 
 dict_tab_manager = get_dict_tab_manager()
-user_manager = get_user_manager()
 config_manager = get_config_manager()
 
 
@@ -61,7 +60,7 @@ def table_details(table: DictionaryTable):
     print(f"Table: {table.table_name}")
     print(f"Description: {table.description}")
     print(f"Access: {table.visibility}")
-    if table.owner_id == user_manager.logged_user:
+    if table.owner_id == UserService.logged_user:
         print("You are the owner.")
     print("Columns:")
     for col in table.columns:
